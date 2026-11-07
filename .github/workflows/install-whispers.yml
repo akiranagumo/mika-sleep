@@ -1,0 +1,27 @@
+name: Install Sui whispering sleep prompts
+on:
+  push:
+    paths:
+      - '.github/workflows/install-whispers.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve quiet Sui sleep whisper clips
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/jflt9ges9UBB7MIEJm1s/NJxSpJzIAgBEKq9d9CVM/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=ochsqjmceei5E0OEoNqWFI7UuyY=' -o 'sui-whisper-rest.mp3'
+          test $(wc -c < sui-whisper-rest.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/JP0nV1Wj75z2jYNZiXWR/exyPNrWh1sIsJoHTEZtx/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=UTrUiNwco9ZNeclqVk3oBhjeRwQ=' -o 'sui-whisper-thoughts.mp3'
+          test $(wc -c < sui-whisper-thoughts.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/RZltuTfYdcIWn3UC51HM/sJ35UpFi60lhxPLMa9Br/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=ts_US2CONkOfU56HIg-c5mXSv4I=' -o 'sui-whisper-calm.mp3'
+          test $(wc -c < sui-whisper-calm.mp3) -gt 1000
+      - name: Commit permanent clips
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-whisper-*.mp3
+          git commit -m 'Store Sui calming whisper clips' || exit 0
+          git push
