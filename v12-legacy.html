@@ -1,0 +1,94 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AKIRA SLEEP Ver.1.2</title>
+<style>:root{color-scheme:dark}*{box-sizing:border-box}body{background:#0b1527;color:#f0e7d8;font-family:system-ui,'Yu Gothic',sans-serif;margin:0;padding:14px}main{max-width:610px;margin:auto;background:linear-gradient(#1d3150,#101b2f);border:1px solid #3b4c67;border-radius:22px;padding:24px 18px}.brand{text-align:center;letter-spacing:3px;color:#dfc799}.moon{width:55px;height:55px;background:#e9cf97;border-radius:50%;margin:20px auto;box-shadow:0 0 40px #d5b56d55;position:relative;overflow:hidden}.moon:after{content:"";position:absolute;width:56px;height:56px;border-radius:50%;left:15px;top:-12px;background:#1a2e4b}h1{text-align:center;font-size:21px;font-weight:400}.phase{text-align:center;color:#bed0e0;margin-top:20px;font-size:15px}#num{font-size:74px;text-align:center;min-height:95px;line-height:1.4;font-variant-numeric:tabular-nums}#sub{min-height:84px;text-align:center;color:#e7d3af;font-size:18px;line-height:1.8}#time{text-align:center;color:#b7c9da;font-size:13px}progress{width:100%;accent-color:#deca99}button{background:#e7d1a7;color:#14233c;border:0;border-radius:27px;padding:15px;cursor:pointer;font-weight:700;font-size:15px;flex:1}button.alt{background:#344660;color:#f4e9da}button:disabled{opacity:.5}.buttons{display:flex;gap:9px;margin:22px 0 12px}label{display:block;margin-top:12px;color:#bdcde0}input{width:100%;accent-color:#d9c291}#status{font-size:13px;color:#cfdaea;white-space:pre-wrap;margin-top:17px;min-height:40px}.note{background:#263a56;border-radius:12px;padding:13px;font-size:13px;color:#d3e0ee;line-height:1.7;margin-top:14px}#status{display:none}.hidden-metrics{display:none}#start{min-height:58px;font-size:17px}#stop[hidden]{display:none}.buttons{margin-top:30px}.seek-wrap{margin-top:23px}.seek-title{display:flex;justify-content:space-between;font-size:13px;color:#d3dfef;margin-bottom:9px}.seek-wrap input{display:block;cursor:pointer;touch-action:pan-y}.install-guide{margin-top:28px;border-top:1px solid #3b4c67;padding-top:18px;color:#d5dfea;font-size:13px;line-height:1.9}.install-guide summary{cursor:pointer;color:#ead7af;font-size:14px;letter-spacing:.02em}.install-guide ol{padding-left:22px;margin:10px 0}.install-guide li{margin:6px 0}.install-guide p{margin:9px 0;color:#c2ccdc}.install-guide strong{color:#f0dbb9}</style></head><body><main>
+<div class="brand">☾ AKIRA SLEEP <span style="font-size:12px;letter-spacing:1px;color:#bfc9d8">Ver.1.2</span></div><div class="moon"></div><h1>静かな眠りへ</h1><div class="hidden-metrics" aria-hidden="true"><div id="phase" class="phase">準備中</div><div id="num">☾</div><div id="sub">深呼吸から始め、自然の情景へ。</div><div id="time">00:00</div><progress id="progress" value="0" max="1800"></progress></div>
+<div class="buttons"><button id="start" disabled>▶ 睡眠導入をはじめる</button><button class="alt" id="stop" disabled hidden>■ 停止</button></div>
+<div class="seek-wrap"><div class="seek-title"><span>再生位置</span><span id="seekLabel">00:00 / --:--</span></div><input id="seek" type="range" min="0" max="1889" step="1" value="0" aria-label="再生位置を移動"></div><label>風の環境音　<span id="volumeLabel">6%</span><input id="volume" type="range" min="0" max="100" value="6"></label>
+<div id="status">既存のSui音声を準備しています…</div>
+<details class="install-guide"><summary>iPhoneでアプリのように使う方法（Safari・ホーム画面）</summary><ol><li>このページのURLをコピーし、iPhoneの<strong>Safari</strong>で開きます。LINEやFacebook内の画面で開いた場合は、メニューから「Safariで開く」を選ぶか、URLをコピーしてSafariのアドレス欄に貼り付けてください。</li><li>Safariの<strong>共有ボタン</strong>（四角から上向き矢印が出たマーク）をタップします。</li><li>メニューを下へスクロールして<strong>「ホーム画面に追加」</strong>を選びます。見つからない場合は共有メニューの「アクションを編集」から追加できます。</li><li>名前を「AKIRA SLEEP」にして、右上の<strong>「追加」</strong>をタップ。ホーム画面にアイコンができます。</li><li>次回からはホーム画面のアイコンをタップするだけで開けます。</li></ol><p>音声を使うときは、ページを開いて「睡眠導入をはじめる」を押してください。最初の読み込みには少し時間がかかる場合があります。</p></details>
+</main>
+<script>
+(()=>{
+'use strict';const $=id=>document.getElementById(id), info=s=>$('status').textContent=s;
+let ctx,noiseGain,voiceGain,noiseSource,digits,auto,digitSeg,autoSeg,intro=null,introBuf=null,suiInhale=null,suiExhale=null,suiNature=null,suiCountIntro=null,suiComfort=null,suiBreathIntro=null,suiBareInhale=null,suiDigits=[],suiCues={},suiWhispers=[],suiSuggestions=[],whisperTrack=null,whisperSegments=[],playing=false,mode='ready',phaseAt=0,currentIndex=-1,currentPhrase=-1,currentWhisperIndex=-1,raf=0,activeSources=[],total=0,breathCue=-1,noiseBeganAt=null,pendingSeek=0,scrubbing=false;
+const fmt=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+function encodedToBytes(s){const raw=atob(s),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes.buffer}
+async function initAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();voiceGain=ctx.createGain();voiceGain.gain.value=.85;voiceGain.connect(ctx.destination);noiseGain=ctx.createGain();noiseGain.gain.value=0;noiseGain.connect(ctx.destination);const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),d=b.getChannelData(0);let x=0;for(let i=0;i<d.length;i++){x=.986*x+.014*(Math.random()*2-1);d[i]=x*3.8}noiseSource=ctx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=820;noiseSource.connect(lp);lp.connect(noiseGain);noiseSource.start();noiseBeganAt=ctx.currentTime}volume()}
+function volume(){if(!ctx)return;const fadeOut=mode==='tail'?Math.max(0,Math.min(1,(600-(ctx.currentTime-phaseAt))/120)):1;const fadeIn=playing?Math.min(1,Math.max(0,(ctx.currentTime-noiseBeganAt)/4)):0;noiseGain.gain.setTargetAtTime(Number($('volume').value)/100*.45*fadeIn*fadeOut,ctx.currentTime,.25)}
+function playClip(buf,start=0,length,level=1){const a=ctx.createBufferSource();const g=ctx.createGain();const duration=Math.min(length??buf.duration,buf.duration-start);a.buffer=buf;a.connect(g);g.connect(voiceGain);g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(level,ctx.currentTime+.045);g.gain.setValueAtTime(level,ctx.currentTime+Math.max(.05,duration-.06));g.gain.linearRampToValueAtTime(0,ctx.currentTime+duration);a.start(ctx.currentTime,start,duration);activeSources.push(a);a.onended=()=>{activeSources=activeSources.filter(s=>s!==a)};return a}
+function stopSources(){for(const a of activeSources){try{a.stop()}catch(e){}}activeSources=[]}
+function scheduleVoice(buffer,at,maxLen){if(!buffer)return;const now=ctx.currentTime,full=Math.min(buffer.duration,maxLen??buffer.duration);if(at+full<=now)return;const missed=Math.max(0,now-at),duration=full-missed,when=Math.max(at,now+.01),source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=buffer;source.connect(gain);gain.connect(voiceGain);gain.gain.setValueAtTime(0,when);gain.gain.linearRampToValueAtTime(1,when+.06);gain.gain.setValueAtTime(1,when+Math.max(.08,duration-.08));gain.gain.linearRampToValueAtTime(0,when+duration);source.start(when,missed,duration);activeSources.push(source);source.onended=()=>{activeSources=activeSources.filter(x=>x!==source)}}
+function scheduleBreathing(){const origin=phaseAt;scheduleVoice(suiBreathIntro,origin+4);for(let c=0;c<3;c++){const base=origin+24+60*c;scheduleVoice(suiBareInhale,base);for(let n=1;n<=4;n++)scheduleVoice(suiDigits[n-1],base+5+2*n);scheduleVoice(suiCues.exhale,base+22);for(let n=1;n<=6;n++)scheduleVoice(suiDigits[n-1],base+25+2*n);if(c<2)scheduleVoice(suiCues.again,base+47)}}
+const phraseIndex={96:0,91:1,86:2,76:3,71:4,66:5,56:6,46:7,36:8,26:9};
+const phrases={96:'右手が重たい',91:'左手も重たい',86:'両足が重たい',76:'右手が温かい',71:'左手も温かい',66:'身体が温かい',56:'呼吸は楽で自然',46:'お腹が温かい',36:'額が涼しい',26:'身体の力が抜けていきます'};
+const views=[{text:'静かな夜の自然の中にいます。',at:0},{text:'深い紺色の空に星が瞬いています。',at:13},{text:'月の淡い光に包まれた森。',at:26},{text:'頬をなでる穏やかな夜風。',at:39},{text:'暗くて静かな森でゆったり休みます。',at:52},{text:'夜の静けさに身をゆだねます。',at:65}];
+function startPhase(m,offset=0){mode=m;phaseAt=ctx.currentTime-offset;currentIndex=-1;currentPhrase=-1;currentWhisperIndex=-1;breathCue=-1;if(m==='breath')scheduleBreathing();if(m==='nature'){scheduleVoice(suiNature,phaseAt+4)}}
+function cue(text){if(!('speechSynthesis' in window))return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=.82;u.pitch=.9;u.volume=.65;const v=window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ja')&&/female|nanami|haruka|ayumi|kyoko|mizuki/i.test(v.name))||window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ja'));if(v)u.voice=v;window.speechSynthesis.speak(u)}catch(e){}}
+
+function finish(){playing=false;cancelAnimationFrame(raf);try{window.speechSynthesis?.cancel()}catch(e){}stopSources();if(ctx)noiseGain.gain.setTargetAtTime(0,ctx.currentTime,.3);$('start').disabled=false;$('start').textContent='▶ 睡眠導入をはじめる';$('stop').disabled=true;mode='ready';info('停止しました。いつでもまた始められます。')}
+function seekTo(position){
+ if(!introBuf||!ctx)return;
+ const introLen=introBuf.duration+.4;
+ const breathLen=193,natureLen=86,countLen=1010,tailLen=600;
+ const duration=introLen+breathLen+natureLen+countLen+tailLen;
+ const p=Math.min(Math.max(0,position),duration);
+ pendingSeek=p;
+ $('seek').value=String(Math.floor(p));
+ $('seekLabel').textContent=fmt(p)+' / '+fmt(duration);
+ if(!playing)return;
+ cancelAnimationFrame(raf);stopSources();
+ try{window.speechSynthesis?.cancel()}catch(e){}
+ if(p<introLen){startPhase('intro',p);if(p<introBuf.duration)scheduleVoice(introBuf,ctx.currentTime-p);}
+ else if(p<introLen+breathLen)startPhase('breath',p-introLen);
+ else if(p<introLen+breathLen+natureLen)startPhase('nature',p-introLen-breathLen);
+ else if(p<introLen+breathLen+natureLen+countLen)startPhase('count',p-introLen-breathLen-natureLen);
+ else startPhase('tail',p-introLen-breathLen-natureLen-countLen);
+ volume();raf=requestAnimationFrame(frame);
+}
+function frame(){if(!playing)return;const t=ctx.currentTime-phaseAt;let elapsed=0;
+if(mode==='intro'){elapsed=t;$('phase').textContent='はじめに';$('num').textContent='☾';$('sub').textContent='今は、何も頑張らなくていいですよ。';if(t>=introBuf.duration+.4)startPhase('breath')}
+else if(mode==='breath'){
+elapsed=introBuf.duration+t;
+$('phase').textContent='静かな呼吸の練習';
+$('num').textContent='☾';
+$('sub').textContent='声の合図に、無理なく呼吸を合わせてください。';
+if(t>=193)startPhase('nature')
+}
+else if(mode==='nature'){elapsed=introBuf.duration+193+t;$('phase').textContent='自然のイメージ誘導';$('num').textContent='☾';let v=views[0];for(const item of views){if(t>=item.at)v=item}$('sub').textContent=v.text;if(t>=86)startPhase('count')}
+else if(mode==='count'){
+const i=Math.min(100,Math.floor(t/10)),n=100-i,sec=t%10;
+elapsed=introBuf.duration+279+Math.min(t,1010);
+$('phase').textContent='やさしいささやきとカウント';
+$('num').textContent=n;
+$('sub').textContent=phrases[n]||'何もしなくていいですよ。';
+const volumeFade=Math.pow(0.18,i/100);
+if(i!==currentIndex){
+currentIndex=i;
+const s=whisperSegments[i];
+if(whisperTrack&&s)playClip(whisperTrack,s.start,Math.min(5.4,s.end-s.start),volumeFade*.85);
+else{const backup=digitSeg[i];if(backup)playClip(digits,backup.start,Math.min(5.3,backup.end-backup.start),volumeFade*.65)}
+}
+const hasAutogenic=Object.prototype.hasOwnProperty.call(phraseIndex,n);
+if(hasAutogenic&&currentPhrase!==n&&sec>=4.7){
+currentPhrase=n;const a=autoSeg[phraseIndex[n]];
+if(a)playClip(auto,a.start,Math.min(4.6,a.end-a.start),.33*volumeFade);
+}
+const hintEvery=i<10?1:i<40?2:i<60?3:i<80?5:i<90?10:0;
+if(i>0&&hintEvery>0&&(i<10||(i-10)%hintEvery===0)&&!hasAutogenic&&sec>=4.8&&currentWhisperIndex!==i){
+currentWhisperIndex=i;
+const pool=suiSuggestions.concat(suiWhispers);
+const w=pool[(i*7+Math.floor(i/10))%pool.length];
+if(w)playClip(w,0,Math.min(4.9,w.duration),.38*volumeFade);
+}
+if(t>=1010)startPhase('tail')}
+else if(mode==='tail'){elapsed=introBuf.duration+1289+t;$('phase').textContent='環境音だけの時間';$('num').textContent='☾';$('sub').textContent='そのまま、静かな風を感じてください。';if(t>=600){finish();info('全行程が終わりました。');return}}
+total=introBuf.duration+.4+1889;$('time').textContent=fmt(elapsed)+' / '+fmt(total);$('progress').max=total;$('progress').value=elapsed;if(!scrubbing){$('seek').value=String(Math.min(total,Math.max(0,Math.floor(elapsed))));$('seekLabel').textContent=fmt(elapsed)+' / '+fmt(total);}volume();raf=requestAnimationFrame(frame)}
+async function load(){try{const res=await fetch('./index.html',{cache:'no-store'});if(!res.ok)throw Error('既存音声ファイルが見つかりません');const src=await res.text();
+const mm=src.match(/const AUDIO_B64='([^']+)'/),am=src.match(/const AUTO_B64="([^"]+)"/),ds=src.match(/const SEGMENTS=(\[[^;]+\]);/),as=src.match(/const AUTO_SEGMENTS=(\[[^;]+\]);/),im=src.match(/<audio id="introAudio"[^>]+src="data:audio\/[^;]+;base64,([^"]+)"/);
+if(!(mm&&am&&ds&&as&&im))throw Error('旧バージョンの音声形式が異なります');
+digitSeg=JSON.parse(ds[1]);autoSeg=JSON.parse(as[1]);if(digitSeg.length!==101||autoSeg.length!==10)throw Error('音声区間の数が正しくありません');
+await initAudio();const fetchSui=async path=>{const res=await fetch('./'+path,{cache:'force-cache'});if(!res.ok)throw Error(path+'を読み込めません');return ctx.decodeAudioData(await res.arrayBuffer())};[digits,auto,introBuf,suiInhale,suiExhale]=await Promise.all([ctx.decodeAudioData(encodedToBytes(mm[1])),ctx.decodeAudioData(encodedToBytes(am[1])),ctx.decodeAudioData(encodedToBytes(im[1])),fetchSui('sui-inhale.mp3'),fetchSui('sui-exhale.mp3')]);suiDigits=await Promise.all([1,2,3,4,5,6].map(i=>fetchSui('sui-digit-'+i+'.mp3')));const cueNames=['preface','inhale','exhale','again'];const cueBuffers=await Promise.all(cueNames.map(name=>fetchSui('sui-cue-'+name+'.mp3')));cueNames.forEach((name,i)=>suiCues[name]=cueBuffers[i]);[suiBreathIntro,suiBareInhale]=await Promise.all([fetchSui('sui-breath-new-intro.mp3'),fetchSui('sui-breath-new-inhale.mp3')]);[suiNature,suiCountIntro,suiComfort]=await Promise.all([fetchSui('sui-nature-night-clean.mp3'),fetchSui('sui-count-intro.mp3'),fetchSui('sui-comfort.mp3')]);suiWhispers=await Promise.all(['rest','thoughts','calm'].map(name=>fetchSui('sui-whisper-'+name+'.mp3')));suiSuggestions=await Promise.all(['eyelids','body','thoughts','rest','nothinking','restmore','quiet','effort','sink','flow','safe'].map(name=>fetchSui('sui-suggestion-'+name+'.mp3')));const whisperRes=await fetch('./sui-whisper-segments.json',{cache:'no-store'});if(!whisperRes.ok)throw Error('ささやきカウントの配置がまだ準備中');whisperSegments=await whisperRes.json();if(whisperSegments.length!==101)throw Error('ささやき数字の区切りが101件ではありません');whisperTrack=await fetchSui('sui-count-whisper.mp3');
+$('start').disabled=false;const duration=introBuf.duration+.4+193+86+1010+600;$('seek').max=String(Math.ceil(duration));$('seekLabel').textContent='00:00 / '+fmt(duration);info('Suiのささやき声と再生位置スライダーを準備しました。');}catch(e){info('準備に失敗しました：'+e.message+'。以前のVer.1.2は引き続き利用できます。');$('status').style.display='block'}}
+$('start').onclick=async()=>{if(playing){finish();return}if(!introBuf)return;await initAudio();await ctx.resume();stopSources();playing=true;startPhase('intro');playClip(introBuf);$('start').textContent='■ 停止する';$('stop').disabled=false;info('導入音声のあと、呼吸練習→自然の情景→101カウントへ進みます。');raf=requestAnimationFrame(frame);if(pendingSeek>0)seekTo(pendingSeek)};
+$('stop').onclick=finish;$('seek').oninput=()=>{scrubbing=true;$('seekLabel').textContent=fmt(Number($('seek').value))+' / '+fmt(Number($('seek').max))};$('seek').onchange=()=>{const p=Number($('seek').value);scrubbing=false;seekTo(p)};$('volume').oninput=()=>{$('volumeLabel').textContent=$('volume').value+'%';volume()};load();
+})();
+</script></body></html>
