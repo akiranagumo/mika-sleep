@@ -36,6 +36,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <p class="tag">Suiの声で、呼吸を整え、静かな情景へ。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>音声を1本のMP3に統合し、iPhoneの標準プレーヤーで再生します。</div>
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
+<button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
 <button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
@@ -59,6 +60,9 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 const audio=document.getElementById("audio");
 const play=document.getElementById("play");
 const back10=document.getElementById("back10");
+const voiceTest=document.getElementById("voiceTest");
+const voiceSample=new Audio("./sui-breath-new-intro.mp3");
+voiceSample.preload="none";
 const seek=document.getElementById("seek");
 const label=document.getElementById("elapsed");
 const status=document.getElementById("status");
@@ -70,8 +74,14 @@ function update(){const duration=Number.isFinite(audio.duration)?audio.duration:
  play.textContent=audio.paused?"▶ "+(audio.currentTime>0?"再生を続ける":"睡眠導入をはじめる"):"Ⅱ 一時停止";
  if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=audio.paused?"paused":"playing";if(duration&&navigator.mediaSession.setPositionState)navigator.mediaSession.setPositionState({duration,playbackRate:1,position:Math.min(duration,audio.currentTime)})}catch(e){}}
 }
-async function toggle(){try{if(audio.paused){await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
+async function toggle(){try{if(audio.paused){voiceSample.pause();voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
 play.addEventListener("click",toggle);
+voiceTest.addEventListener("click",async()=>{
+ if(!voiceSample.paused){voiceSample.pause();voiceSample.currentTime=0;voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";status.textContent="試聴を停止しました。";return;}
+ try{audio.pause();voiceSample.currentTime=0;await voiceSample.play();voiceTest.textContent="■ Sui試聴を停止";status.textContent="Suiの録音を直接再生中。こちらで声が聞こえるか確認してね。";}
+ catch(e){status.textContent="Suiの試聴に失敗しました。詳細："+(e?.message||e);}
+});
+voiceSample.addEventListener("ended",()=>{voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";status.textContent="Suiの試聴が終わりました。32分の音声は上のボタンで再生してね。"});
 back10.addEventListener("click",()=>{audio.currentTime=Math.max(0,audio.currentTime-10);update()});
 seek.addEventListener("input",()=>{seeking=true;const d=audio.duration;if(Number.isFinite(d)){label.textContent=fmt(Number(seek.value)/1000*d)+" / "+fmt(d)}});
 seek.addEventListener("change",()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number(seek.value)/1000*audio.duration;seeking=false;update()});
