@@ -60,6 +60,15 @@ def main():
         html, "introduction audio"
     )
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
+    new_whispers = json.loads((ROOT / "sui-whisper-v2-segments.json").read_text("utf-8"))
+    comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
+    if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
+        raise ValueError("Expected all 89..0 new Sui whisper numbers in order")
+    if len(comforts) != 14:
+        raise ValueError("Expected 14 Sui whispered relaxation phrases")
+    # The final generated clip ends very close to the end of its source.
+    # Use only the 13 earlier phrases, whose full spoken endings are intact.
+    comforts = comforts[:13]
     if len(whispers) != 101:
         raise ValueError("Expected 101 timed Sui whisper count clips")
     for i, span in enumerate(whispers):
@@ -87,6 +96,8 @@ def main():
             return memo[filename]
 
         whisper_audio = asset("sui-count-whisper.mp3")
+        new_whisper_audio = asset("sui-count-whisper-v2.mp3")
+        comfort_audio = asset("sui-comfort-whispers-v2.mp3")
         breath_intro = asset("sui-breath-new-intro.mp3")
         inhale = asset("sui-breath-new-inhale.mp3")
         exhale = asset("sui-cue-exhale.mp3")
@@ -128,19 +139,39 @@ def main():
 
 
         def whisper_count(number: int, when: float, *, intensity=1.0):
-            """Full recorded whisper number, tapered softly at both edges.
-
-            Each one is shorter than 3.5 s and is never duration-truncated.
-            Never substitute normal/digit voice for an unintelligible number.
-            """
+            """Use true Sui whisper recordings with word-accurate boundaries."""
             if not 0 <= number <= 100:
                 raise ValueError(f"Invalid count {number}")
-            span = whispers[100 - number]
+            if number >= 90:
+                # Keep the 100..90 portion that already sounded whispered.
+                span = whispers[100 - number]
+                track = whisper_audio
+            else:
+                # New studio take: 89..0 is explicitly spoken in a whisper.
+                span = new_whispers[89 - number]
+                track = new_whisper_audio
             start = float(span["start"])
-            clip_duration = float(span["end"]) - start
-            add(whisper_audio, when, start=start, duration=clip_duration,
+            duration = float(span["end"]) - start
+            if duration < 0.45 or duration > 3.5:
+                raise ValueError(f"Invalid Sui whisper {number} ({duration:.3f}s)")
+            add(track, when, start=start, duration=duration,
                 gain=0.85 * intensity, target_rms=0.062,
-                fade_seconds=0.115)
+                fade_seconds=0.08)
+
+        def comfort_whisper(phrase_idx: int, when: float, intensity: float):
+            """Restore one FULL, short reassuring whisper between counts."""
+            segment = comforts[phrase_idx % len(comforts)]
+            start = float(segment["start"])
+            duration = float(segment["end"]) - start
+            if not 1.5 < duration < 3.8:
+                raise ValueError(f"Phrase {phrase_idx} too long or invalid ({duration})")
+            # 10-second count intervals; the phrase starts at +3.4, and
+            # must finish before the next number, never mid-word.
+            if 3.4 + duration >= 8.5:
+                raise ValueError(f"Comfort phrase overlaps next count: {phrase_idx}")
+            add(comfort_audio, when + 3.4, start=start, duration=duration,
+                gain=0.57 * intensity, target_rms=0.062,
+                fade_seconds=0.09)
 
         add(intro, 0)
         add(breath_intro, breath_start + 4)
@@ -156,18 +187,26 @@ def main():
                 add(repeat, t + 47)
         add(nature, nature_start + 4)
 
-        # Sleep countdown: one gently whispered Sui number every 10 seconds.
-        # The long phrases from legacy AUTO_SEGMENTS/suggestion clips were
-        # sometimes cut at 4.6–4.9 seconds in the middle of Japanese words.
-        # Remove those inserted phrases completely; keep an unbroken quiet
-        # gap for natural relaxation and the adjustable ambient wind.
+        # A whispered number every ten seconds. A personal whispered phrase
+        # follows some numbers, becoming less frequent as sleep deepens.
+        # All phrases are COMPLETE separate recordings, never clipped at a
+        # fixed 4.6 or 4.9 second cutoff as in the original version.
+        phrases_used = 0
         for i in range(101):
             number = 100 - i
             when = count_start + i * 10
             gentle_fade = 1.0 - 0.18 * pow(i / 100, 1.25)
             whisper_count(number, when, intensity=gentle_fade)
-        print("Whisper QA: 101 complete countdown numbers, 10 s spacing, "
-              "no interleaved/truncated phrases", flush=True)
+            say_phrase = (i < 30 and i % 2 == 1) or (
+                30 <= i < 70 and i % 3 == 1) or (
+                i >= 70 and i % 4 == 1)
+            if say_phrase:
+                comfort_whisper(phrases_used, when, gentle_fade)
+                phrases_used += 1
+        assert phrases_used >= 30, f"Insufficient reassurance whispers: {phrases_used}"
+        print(f"Whisper QA: 101 full Sui whisper counts, "
+              f"{phrases_used} complete gentle reassurance phrases; "
+              "89..0 replaced with whisper-only take", flush=True)
 
         # Validate Sui-only audio BEFORE adding wind: ambient must never mask
         # missing or weak speech clips.  The other files are pure remixes.
