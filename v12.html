@@ -12,7 +12,7 @@
 let ctx,noiseGain,voiceGain,noiseSource,digits,auto,digitSeg,autoSeg,intro=null,introBuf=null,playing=false,mode='ready',phaseAt=0,currentIndex=-1,currentPhrase=-1,raf=0,activeSources=[],total=0;
 const fmt=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 function encodedToBytes(s){const raw=atob(s),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes.buffer}
-async function initAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();voiceGain=ctx.createGain();voiceGain.gain.value=.85;voiceGain.connect(ctx.destination);noiseGain=ctx.createGain();noiseGain.connect(ctx.destination);const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),d=b.getChannelData(0);let x=0;for(let i=0;i<d.length;i++){x=.986*x+.014*(Math.random()*2-1);d[i]=x*3.8}noiseSource=ctx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=820;noiseSource.connect(lp);lp.connect(noiseGain);noiseSource.start()}await ctx.resume();volume()}
+async function initAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();voiceGain=ctx.createGain();voiceGain.gain.value=.85;voiceGain.connect(ctx.destination);noiseGain=ctx.createGain();noiseGain.connect(ctx.destination);const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),d=b.getChannelData(0);let x=0;for(let i=0;i<d.length;i++){x=.986*x+.014*(Math.random()*2-1);d[i]=x*3.8}noiseSource=ctx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=820;noiseSource.connect(lp);lp.connect(noiseGain);noiseSource.start()}volume()}
 function volume(){if(!ctx)return;const fade=mode==='tail'?Math.max(0,Math.min(1,(600-(ctx.currentTime-phaseAt))/120)):1;noiseGain.gain.setTargetAtTime(Number($('volume').value)/100*.45*fade,ctx.currentTime,.12)}
 function playClip(buf,start=0,length){const a=ctx.createBufferSource();a.buffer=buf;a.connect(voiceGain);a.start(ctx.currentTime,start,length??buf.duration);activeSources.push(a);a.onended=()=>{activeSources=activeSources.filter(s=>s!==a)};return a}
 function stopSources(){for(const a of activeSources){try{a.stop()}catch(e){}}activeSources=[]}
@@ -36,7 +36,7 @@ if(!(mm&&am&&ds&&as&&im))throw Error('旧バージョンの音声形式が異な
 digitSeg=JSON.parse(ds[1]);autoSeg=JSON.parse(as[1]);if(digitSeg.length!==101||autoSeg.length!==10)throw Error('音声区間の数が正しくありません');
 await initAudio();[digits,auto,introBuf]=await Promise.all([ctx.decodeAudioData(encodedToBytes(mm[1])),ctx.decodeAudioData(encodedToBytes(am[1])),ctx.decodeAudioData(encodedToBytes(im[1]))]);
 $('start').disabled=false;info('Sui音声を読み込みました。開始できます。');}catch(e){info('準備に失敗しました：'+e.message+'。以前のVer.1.1は引き続き利用できます。')}}
-$('start').onclick=async()=>{if(playing||!introBuf)return;await initAudio();stopSources();playing=true;startPhase('intro');playClip(introBuf);$('start').disabled=true;$('stop').disabled=false;info('導入音声のあと、呼吸練習→自然の情景→101カウントへ進みます。');raf=requestAnimationFrame(frame)};
+$('start').onclick=async()=>{if(playing||!introBuf)return;await initAudio();await ctx.resume();stopSources();playing=true;startPhase('intro');playClip(introBuf);$('start').disabled=true;$('stop').disabled=false;info('導入音声のあと、呼吸練習→自然の情景→101カウントへ進みます。');raf=requestAnimationFrame(frame)};
 $('stop').onclick=finish;$('volume').oninput=()=>{$('volumeLabel').textContent=$('volume').value+'%';volume()};load();
 })();
 </script></body></html>
