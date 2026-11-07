@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.3</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.4</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,10 +34,10 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.3 · WIND CONTROL</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.4 · SUI WHISPER</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
-<p class="tag">Suiの声で、呼吸を整え、静かな情景へ。<br>あとは目を閉じて、音に身を任せてね。</p>
+<p class="tag">Suiの囁き声で、ゆっくり100から0へ。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
@@ -48,9 +48,9 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <button class="button secondary" type="button" id="windTest">♫ 選んだ風の音だけを8秒試聴</button>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-wind-audible-133"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-whisper-134"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
+<p class="note">約32分の睡眠誘導です。100から0のカウントはSuiの短い囁き声で統一。数字と数字の間の長い語りをなくし、途中で途切れるフレーズを除去しました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -77,7 +77,7 @@ const presetFiles=[
  ["中","sleep-background-wind-10.mp3"],
  ["強","sleep-background-wind-20.mp3"]
 ];
-const audioTag="v=20261108-wind-audible-133";
+const audioTag="v=20261108-whisper-134";
 const presetUrl=i=>"./"+presetFiles[i][1]+"?"+audioTag;
 const windTest=document.getElementById("windTest");
 const windPreview=new Audio();
