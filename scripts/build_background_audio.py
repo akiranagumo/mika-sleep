@@ -18,7 +18,17 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 SR = 32000
-OUT = ROOT / "sleep-background-full.mp3"
+# Voice and ambient are mixed into alternative, equal-length files.
+# iOS Safari can background-play a single HTMLAudioElement; swapping the
+# source while the page is visible allows wind selection without WebAudio.
+PRESETS = [
+    ("sleep-background-full.mp3", 0.0),       # Sui only, default
+    ("sleep-background-wind-02.mp3", 0.002),  # 0.2%, barely audible
+    ("sleep-background-wind-05.mp3", 0.005),  # 0.5%, quiet
+    ("sleep-background-wind-10.mp3", 0.010),  # 1.0%
+    ("sleep-background-wind-20.mp3", 0.020),  # 2.0% (old was 4%)
+]
+
 
 
 def decode(path: Path) -> np.ndarray:
@@ -158,26 +168,8 @@ def main():
                     clip = suggestions[(i * 7 + i // 10) % len(suggestions)]
                     add(clip, t + 4.8, gain=0.38 * quiet, duration=4.9)
 
-        # Gentle 4% ambient wind, permanently mixed in so background playback
-        # cannot depend on Web Audio, timers or another audio element.
-        rng = np.random.default_rng(2608)
-        period = 3 * SR
-        noise = rng.uniform(-1, 1, period).astype(np.float32)
-        loop = np.empty(period, dtype=np.float32)
-        acc = 0.0
-        for j in range(period):
-            acc = 0.986 * acc + 0.014 * float(noise[j])
-            loop[j] = acc * 3.8
-        for begin in range(0, len(mix), 6 * SR):
-            end = min(len(mix), begin + 6 * SR)
-            now = np.arange(begin, end, dtype=np.float32) / SR
-            fade_in = np.minimum(1.0, now / 4.0)
-            fade_out = np.minimum(1.0, np.maximum(0, total_seconds - now) / 120.0)
-            indexes = np.arange(begin, end) % period
-            mix[begin:end] += loop[indexes] * (0.04 * 0.45 * fade_in * fade_out)
-
-        # These are speech-only checkpoints, before ambient noise is added.
-        # Catch a broken/quiet source mix instead of publishing wind alone.
+        # Validate Sui-only audio BEFORE adding wind: ambient must never mask
+        # missing or weak speech clips.  The other files are pure remixes.
         for title, at in [("intro", 0), ("count_start", count_start),
                           ("count_middle", count_start + 500),
                           ("count_late", count_start + 900)]:
@@ -187,17 +179,49 @@ def main():
             if level < 0.008:
                 raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
 
-        raw = temp / "sleep.raw"
-        np.clip(mix, -0.98, 0.98).astype("<f4").tofile(raw)
-        subprocess.run([
-            "ffmpeg", "-nostdin", "-y", "-hide_banner", "-loglevel", "error",
-            "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", str(raw),
-            "-c:a", "libmp3lame", "-b:a", "80k", "-write_xing", "1", str(OUT)
-        ], check=True)
-        size_mb = OUT.stat().st_size / 1048576
-        print(f"Created {OUT.name}: {size_mb:.1f} MiB", flush=True)
-        if not 1 < size_mb < 90:
-            raise RuntimeError("Unexpected size; refusing to commit")
+        # Keep the ambient bed identical across all settings to preserve
+        # a stable listening experience when switching volume presets.
+        rng = np.random.default_rng(2608)
+        period = 3 * SR
+        noise = rng.uniform(-1, 1, period).astype(np.float32)
+        loop = np.empty(period, dtype=np.float32)
+        acc = 0.0
+        for j in range(period):
+            acc = 0.986 * acc + 0.014 * float(noise[j])
+            loop[j] = acc * 3.8
+
+        # Render short chunks rather than allocating five full mixes in memory.
+        # All outputs share exact sample count and MP3 encoding settings.
+        chunk = 6 * SR
+        for filename, wind_level in PRESETS:
+            outfile = ROOT / filename
+            cmd = [
+                "ffmpeg", "-nostdin", "-y", "-hide_banner", "-loglevel", "error",
+                "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "pipe:0",
+                "-c:a", "libmp3lame", "-b:a", "80k", "-write_xing", "1",
+                str(outfile)
+            ]
+            process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+            try:
+                for begin in range(0, len(mix), chunk):
+                    end = min(len(mix), begin + chunk)
+                    audio = mix[begin:end].copy()
+                    if wind_level > 0:
+                        now = np.arange(begin, end, dtype=np.float32) / SR
+                        fade_in = np.minimum(1.0, now / 4.0)
+                        fade_out = np.minimum(1.0, np.maximum(0, total_seconds - now) / 120.0)
+                        indexes = np.arange(begin, end) % period
+                        audio += loop[indexes] * (wind_level * 0.45 * fade_in * fade_out)
+                    process.stdin.write(np.clip(audio, -0.98, 0.98).astype("<f4").tobytes())
+            finally:
+                if process.stdin:
+                    process.stdin.close()
+            if process.wait() != 0:
+                raise RuntimeError(f"FFmpeg failed rendering {filename}")
+            size_mb = outfile.stat().st_size / 1048576
+            print(f"Created {filename}: {size_mb:.1f} MiB, wind {wind_level:.2%}", flush=True)
+            if not 1 < size_mb < 90:
+                raise RuntimeError(f"Unexpected output size for {filename}")
 
 
 if __name__ == "__main__":
