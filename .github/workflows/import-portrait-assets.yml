@@ -1,0 +1,36 @@
+name: Install SLEEPLESS portrait photos
+on:
+  push:
+    paths:
+      - '.github/workflows/import-portrait-assets.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch approved AI-generated portraits
+        env:
+          MIKA_URL: "https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/uri:ifs%3A%2F%2FM%2F18efde61-0470-4bdb-8f2e-f25b85aa0816/watermark:F/width:171?csig=AAAAAAAAAAAAAAAAAAAAAOVGU2BLc64_eCAHtISrz9HyRF_2UrADd0_Ulxz0WOCt&exp=1794064347&osig=AAAAAAAAAAAAAAAAAAAAAClfkr_ybdjI8T2YUpP9GZz74y-tDMIoEgmBJ_lQQn1d&signer=media-rpc&token=AAIAAU0AJDE4ZWZkZTYxLTA0NzAtNGJkYi04ZjJlLWYyNWI4NWFhMDgxNgAAAAABobaRb3hCCXRTO-jGVp283wO1N0-NgcbD1MWdzge1HH6h2nbcng&x-canva-quality=thumbnail"
+          AKIRA_URL: "https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/uri:ifs%3A%2F%2FM%2F12afa8e8-9d36-4243-aad7-19a4b3a120e7/watermark:F/width:171?csig=AAAAAAAAAAAAAAAAAAAAAP8OmRfeLx8BvLU2wDNw2NWSt_yg_7TSJlBlQIvtv_VX&exp=1794065533&osig=AAAAAAAAAAAAAAAAAAAAAJ020HPbTo3bSarDJ-wIet6PV6F_8_EeUj4kAvuFmKO0&signer=media-rpc&token=AAIAAU0AJDEyYWZhOGU4LTlkMzYtNDI0My1hYWQ3LTE5YTRiM2ExMjBlNwAAAAABobajiEj1_yVx01rRF0n4LwjT0uSKm-OVCOC7LiQ880sRtHCgAA&x-canva-quality=thumbnail"
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          os.makedirs("assets", exist_ok=True)
+          for name in ("mika", "akira"):
+              url=os.environ[name.upper()+"_URL"]
+              req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+              with urllib.request.urlopen(req,timeout=45) as response:
+                  data=response.read()
+              if not 1000<len(data)<3000000: raise ValueError("Invalid photo response size")
+              with open("assets/"+name+"-portrait.jpg","wb") as fp: fp.write(data)
+              print(name,len(data))
+          PY
+      - name: Commit portrait files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/mika-portrait.jpg assets/akira-portrait.jpg
+          git diff --cached --quiet || git commit -m "Store approved photoreal SLEEPLESS portrait assets"
+          git push
