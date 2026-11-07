@@ -46,6 +46,33 @@ jobs:
               print(filename, info['duration'], info['size'], flush=True)
           assert max(durations) - min(durations) < 0.1, durations
           PY
+      - name: Verify wind levels are audible and increase monotonically
+        run: |
+          python - <<'PY'
+          import subprocess, numpy as np
+          names = [
+              'sleep-background-full.mp3',
+              'sleep-background-wind-02.mp3',
+              'sleep-background-wind-05.mp3',
+              'sleep-background-wind-10.mp3',
+              'sleep-background-wind-20.mp3',
+          ]
+          # In the late tail, Sui has stopped talking and only ambient
+          # audio can be present. Use a section away from the final fade.
+          def rms(path):
+              raw = subprocess.check_output([
+                  'ffmpeg', '-hide_banner', '-loglevel', 'error',
+                  '-ss', '1450', '-t', '12', '-i', path,
+                  '-ac', '1', '-ar', '32000', '-f', 'f32le', 'pipe:1'])
+              arr = np.frombuffer(raw, dtype='<f4').astype(np.float64)
+              assert arr.size > 300000, f'Invalid sample for {path}'
+              return float(np.sqrt(np.mean(arr**2)))
+          levels = [rms(path) for path in names]
+          print('Wind tail RMS levels:', list(zip(names, levels)))
+          assert levels[0] < 0.0006, 'Off should be effectively silent after voice'
+          assert 0.002 < levels[1] < levels[2] < levels[3] < levels[4], 'Wind presets must rise audibly'
+          assert levels[4] > 0.010, 'Maximum wind should be audible on speakers'
+          PY
       - name: Commit audio to public GitHub Pages repository
         run: |
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
