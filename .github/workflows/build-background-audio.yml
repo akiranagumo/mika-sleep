@@ -1,0 +1,44 @@
+name: Build continuous Sui background sleep audio
+on:
+  push:
+    paths:
+      - '.github/workflows/build-background-audio.yml'
+      - 'scripts/build_background_audio.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout audio sources
+        uses: actions/checkout@v4
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install audio builder dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'numpy>=1.26,<3'
+          ffmpeg -version | head -n 1
+      - name: Render full 32-minute background playback file
+        run: python scripts/build_background_audio.py
+      - name: Validate MP3 has expected length and non-silent speech
+        run: |
+          test -s sleep-background-full.mp3
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 sleep-background-full.mp3
+          python - <<'PY'
+          import json, subprocess
+          result = subprocess.check_output(['ffprobe','-v','error','-show_format','-of','json','sleep-background-full.mp3'])
+          duration = float(json.loads(result)['format']['duration'])
+          assert 1850 < duration < 2100, f'Unexpected duration: {duration}'
+          PY
+      - name: Commit audio to public GitHub Pages repository
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sleep-background-full.mp3
+          git commit -m 'Publish continuous Sui sleep audio for iOS background playback' || exit 0
+          git pull --rebase
+          git push
