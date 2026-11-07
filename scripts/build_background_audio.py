@@ -21,12 +21,15 @@ SR = 32000
 # Voice and ambient are mixed into alternative, equal-length files.
 # iOS Safari can background-play a single HTMLAudioElement; swapping the
 # source while the page is visible allows wind selection without WebAudio.
+# Wind gains are audio mixing coefficients, NOT percentage of perceived
+# loudness. Earlier values (0.002..0.020) measured ~-75..-55 dBFS and were
+# effectively inaudible on phones. This range reaches ~-35 dBFS at the top.
 PRESETS = [
-    ("sleep-background-full.mp3", 0.0),       # Sui only, default
-    ("sleep-background-wind-02.mp3", 0.002),  # 0.2%, barely audible
-    ("sleep-background-wind-05.mp3", 0.005),  # 0.5%, quiet
-    ("sleep-background-wind-10.mp3", 0.010),  # 1.0%
-    ("sleep-background-wind-20.mp3", 0.020),  # 2.0% (old was 4%)
+    ("sleep-background-full.mp3", 0.0),       # off / Sui only
+    ("sleep-background-wind-02.mp3", 0.04),   # gentle breeze
+    ("sleep-background-wind-05.mp3", 0.08),   # light breeze
+    ("sleep-background-wind-10.mp3", 0.14),   # moderate
+    ("sleep-background-wind-20.mp3", 0.22),   # strong
 ]
 
 
@@ -219,7 +222,8 @@ def main():
             if process.wait() != 0:
                 raise RuntimeError(f"FFmpeg failed rendering {filename}")
             size_mb = outfile.stat().st_size / 1048576
-            print(f"Created {filename}: {size_mb:.1f} MiB, wind {wind_level:.2%}", flush=True)
+            estimated_wind_rms = 0.45 * wind_level * float(np.sqrt(np.mean(np.square(loop, dtype=np.float64))))
+            print(f"Created {filename}: {size_mb:.1f} MiB, wind mix={wind_level:.3f}, wind_rms={estimated_wind_rms:.5f}", flush=True)
             if not 1 < size_mb < 90:
                 raise RuntimeError(f"Unexpected output size for {filename}")
 
