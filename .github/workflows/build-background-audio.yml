@@ -1,4 +1,7 @@
 name: Build continuous Sui background sleep audio
+concurrency:
+  group: sui-background-audio
+  cancel-in-progress: true
 on:
   push:
     paths:
@@ -84,12 +87,32 @@ jobs:
           PY
       - name: Commit audio to public GitHub Pages repository
         run: |
+          set -euo pipefail
+          mkdir -p /tmp/sui-publish
+          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
-          git add sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3
-          git commit -m 'Publish Sui sleep voice with five quiet wind presets for iOS background playback' || exit 0
-          git pull --rebase
-          git push
+          # Never try to rebase several independently generated large MP3 commits.
+          # Base a fresh publish commit on the current origin/main each time.
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-publish/* .
+            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3
+            if git diff --cached --quiet; then
+              echo 'Audio is already current'
+              exit 0
+            fi
+            git commit -m 'Publish audible Sui wind controls and isolated previews'
+            if git push origin HEAD:main; then
+              echo 'Sui wind files successfully published'
+              exit 0
+            fi
+            echo "Remote main moved during publish; retry $attempt"
+            sleep 3
+          done
+          echo 'Failed to publish audio after retries'
+          exit 1
 
       - name: Publish diagnostic log if render failed
         if: failure()
