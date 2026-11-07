@@ -1,11 +1,12 @@
 Length: 1918.8s, 61432320 samples
 Whisper QA: 101 full Sui whisper counts, 35 complete gentle reassurance phrases; 89..0 replaced with whisper-only take
 Voice checkpoint intro: RMS 0.11085
-Voice checkpoint count_start: RMS 0.01452
-Voice checkpoint count_middle: RMS 0.00759
+Voice checkpoint count_start: RMS 0.01660
+Voice checkpoint count_middle: RMS 0.00821
+Voice checkpoint count_late: RMS 0.00254
 Traceback (most recent call last):
   File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 269, in <module>
     main()
   File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 220, in main
     raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
-RuntimeError: Speech too quiet at count_middle: 0.00759
+RuntimeError: Speech too quiet at count_late: 0.00254
