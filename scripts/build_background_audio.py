@@ -54,17 +54,20 @@ def extract(pattern: str, src: str, name: str) -> str:
 
 def main():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    b64_digits = extract(r"const AUDIO_B64='([^']+)'", html, "digit audio")
-    b64_auto = extract(r'const AUTO_B64="([^"]+)"', html, "autogenic audio")
+    # The countdown uses only Sui's dedicated whisper recording.
     b64_intro = extract(
         r'<audio id="introAudio"[^>]+src="data:audio/[^;]+;base64,([^"]+)"',
         html, "introduction audio"
     )
-    digit_spans = json.loads(extract(r"const SEGMENTS=(\[[^;]+\]);", html, "digit spans"))
-    auto_spans = json.loads(extract(r"const AUTO_SEGMENTS=(\[[^;]+\]);", html, "autogenic spans"))
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
-    if (len(digit_spans), len(auto_spans), len(whispers)) != (101, 10, 101):
-        raise ValueError("Expected 101 digit, 10 autogenic and 101 whisper spans")
+    if len(whispers) != 101:
+        raise ValueError("Expected 101 timed Sui whisper count clips")
+    for i, span in enumerate(whispers):
+        duration = float(span["end"]) - float(span["start"])
+        if not 0.45 <= duration <= 3.5:
+            raise ValueError(f"Invalid whisper segment {100-i}: {duration}")
+        if i and abs(float(span["start"]) - float(whispers[i-1]["end"])) > 0.3:
+            raise ValueError(f"Unexpected whisper segment gap at {100-i}")
 
     with tempfile.TemporaryDirectory() as tempdir:
         temp = Path(tempdir)
@@ -75,8 +78,7 @@ def main():
             return decode(path)
 
         intro = from_b64("intro", b64_intro)
-        legacy_digits = from_b64("digits", b64_digits)
-        autogenic = from_b64("autogenic", b64_auto)
+        # Keep the intro intact; countdown and breath numbers use Sui's whisper.
 
         memo = {}
         def asset(filename: str):
@@ -89,13 +91,7 @@ def main():
         inhale = asset("sui-breath-new-inhale.mp3")
         exhale = asset("sui-cue-exhale.mp3")
         repeat = asset("sui-cue-again.mp3")
-        spoken_digits = [asset(f"sui-digit-{i}.mp3") for i in range(1, 7)]
         nature = asset("sui-nature-night-clean.mp3")
-        suggestions = [
-            asset(f"sui-suggestion-{word}.mp3")
-            for word in ["eyelids", "body", "thoughts", "rest", "nothinking",
-                         "restmore", "quiet", "effort", "sink", "flow", "safe"]
-        ] + [asset(f"sui-whisper-{word}.mp3") for word in ["rest", "thoughts", "calm"]]
 
         intro_duration = len(intro) / SR + 0.4
         breath_start = intro_duration
@@ -106,7 +102,7 @@ def main():
         mix = np.zeros(round(total_seconds * SR) + SR, dtype=np.float32)
         print(f"Length: {total_seconds:.1f}s, {len(mix)} samples", flush=True)
 
-        def add(track, when, *, gain=1.0, start=0.0, duration=None):
+        def add(track, when, *, gain=1.0, start=0.0, duration=None, target_rms=0.11, fade_seconds=0.055):
             sample_offset = max(0, round(float(start) * SR))
             available = len(track) - sample_offset
             count = available if duration is None else min(available, max(0, round(duration * SR)))
@@ -120,15 +116,31 @@ def main():
             # A peak guard prevents clipping or an unexpectedly loud phrase.
             rms = float(np.sqrt(np.mean(np.square(part, dtype=np.float64))))
             peak = float(np.max(np.abs(part)))
-            boost = min(6.0, max(1.0, 0.11 / max(rms, 0.001)))
+            boost = min(6.0, max(1.0, target_rms / max(rms, 0.001)))
             if peak > 0:
                 boost = min(boost, 0.82 / peak)
-            fade = min(round(SR * 0.055), count // 2)
+            fade = min(round(SR * fade_seconds), count // 2)
             levels = np.full(count, 0.85 * gain * boost, dtype=np.float32)
             if fade:
                 levels[:fade] *= np.linspace(0, 1, fade, dtype=np.float32)
                 levels[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
             mix[at:at + count] += part * levels
+
+
+        def whisper_count(number: int, when: float, *, intensity=1.0):
+            """Full recorded whisper number, tapered softly at both edges.
+
+            Each one is shorter than 3.5 s and is never duration-truncated.
+            Never substitute normal/digit voice for an unintelligible number.
+            """
+            if not 0 <= number <= 100:
+                raise ValueError(f"Invalid count {number}")
+            span = whispers[100 - number]
+            start = float(span["start"])
+            clip_duration = float(span["end"]) - start
+            add(whisper_audio, when, start=start, duration=clip_duration,
+                gain=0.85 * intensity, target_rms=0.062,
+                fade_seconds=0.115)
 
         add(intro, 0)
         add(breath_intro, breath_start + 4)
@@ -136,40 +148,26 @@ def main():
             t = breath_start + 24 + 60 * cycle
             add(inhale, t)
             for n in range(1, 5):
-                add(spoken_digits[n - 1], t + 5 + 2 * n)
+                whisper_count(n, t + 5 + 2 * n, intensity=0.9)
             add(exhale, t + 22)
             for n in range(1, 7):
-                add(spoken_digits[n - 1], t + 25 + 2 * n)
+                whisper_count(n, t + 25 + 2 * n, intensity=0.9)
             if cycle < 2:
                 add(repeat, t + 47)
         add(nature, nature_start + 4)
 
-        phrases = {96: 0, 91: 1, 86: 2, 76: 3, 71: 4,
-                   66: 5, 56: 6, 46: 7, 36: 8, 26: 9}
+        # Sleep countdown: one gently whispered Sui number every 10 seconds.
+        # The long phrases from legacy AUTO_SEGMENTS/suggestion clips were
+        # sometimes cut at 4.6–4.9 seconds in the middle of Japanese words.
+        # Remove those inserted phrases completely; keep an unbroken quiet
+        # gap for natural relaxation and the adjustable ambient wind.
         for i in range(101):
-            t = count_start + i * 10
             number = 100 - i
-            # Keep words gentle but intelligible throughout. The old 18%-at-end
-            # curve buried the whisper under wind and phone speaker noise.
-            quiet = 1.0 - 0.50 * pow(i / 100, 1.3)
-            span = whispers[i]
-            take = min(5.4, span["end"] - span["start"])
-            if take > 0.1:
-                add(whisper_audio, t, gain=quiet * 0.85,
-                    start=span["start"], duration=take)
-            else:
-                span = digit_spans[i]
-                add(legacy_digits, t, gain=quiet * 0.65,
-                    start=span["start"], duration=min(5.3, span["end"] - span["start"]))
-            if number in phrases:
-                span = auto_spans[phrases[number]]
-                add(autogenic, t + 4.7, gain=0.33 * quiet,
-                    start=span["start"], duration=min(4.6, span["end"] - span["start"]))
-            else:
-                n = 1 if i < 10 else 2 if i < 40 else 3 if i < 60 else 5 if i < 80 else 10 if i < 90 else 0
-                if i > 0 and n and (i < 10 or (i - 10) % n == 0):
-                    clip = suggestions[(i * 7 + i // 10) % len(suggestions)]
-                    add(clip, t + 4.8, gain=0.38 * quiet, duration=4.9)
+            when = count_start + i * 10
+            gentle_fade = 1.0 - 0.18 * pow(i / 100, 1.25)
+            whisper_count(number, when, intensity=gentle_fade)
+        print("Whisper QA: 101 complete countdown numbers, 10 s spacing, "
+              "no interleaved/truncated phrases", flush=True)
 
         # Validate Sui-only audio BEFORE adding wind: ambient must never mask
         # missing or weak speech clips.  The other files are pure remixes.
