@@ -41,7 +41,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
-<button class="button secondary" type="button" id="countTest">♫ 囁きと優しい語りをすぐ確認（100から）</button>
+<button class="button secondary" type="button" id="countTest">♫ 囁きと優しい語りをすぐ確認（99から）</button>
 <button class="button secondary" type="button" id="count89Test">♫ 89からの囁きを確認</button>
 <button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
 <div class="wind-row"><label for="wind">風の音（環境音）</label><span class="wind-label" id="windLabel">なし · 0%</span></div>
@@ -191,31 +191,28 @@ function update(){const duration=Number.isFinite(audio.duration)?audio.duration:
 }
 async function toggle(){try{if(audio.paused){stopWindPreview();voiceSample.pause();voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
 play.addEventListener("click",toggle);
-countTest.addEventListener("click",async()=>{
-  stopWindPreview();
-  voiceSample.pause();
-  const countStart=308.8;
-  try{
-    if(audio.readyState===0)audio.load();
-    audio.currentTime=countStart;
-    await audio.play();
-    status.textContent="Suiの囁きカウントを再生中。100から10秒ずつ、数字の間は静かな時間です。";
-  }catch(e){status.textContent="カウント試聴を開始できませんでした。詳細："+(e?.message||e)}
-  update();
-});
-count89Test.addEventListener("click",async()=>{
+async function jumpToWhisperCount(position, description){
   stopWindPreview();
   voiceSample.pause();
   try{
-    if(audio.readyState===0)audio.load();
-    audio.currentTime=418.8;
+    if(audio.readyState<1){
+      const metadataReady=new Promise((resolve,reject)=>{
+        audio.addEventListener("loadedmetadata",resolve,{once:true});
+        audio.addEventListener("error",reject,{once:true});
+      });
+      audio.load();
+      await metadataReady;
+    }
+    audio.currentTime=Math.min(position,Math.max(0,audio.duration-0.2));
     await audio.play();
-    status.textContent="89からのSuiの囁きカウントと、短い優しい囁きを確認中。";
+    status.textContent=description;
   }catch(e){
-    status.textContent="89からの囁き試聴を開始できませんでした。詳細："+(e?.message||e);
+    status.textContent="囁きカウントを開始できませんでした。もう一度押してください。詳細："+(e?.message||e);
   }
   update();
-});
+}
+countTest.addEventListener("click",()=>jumpToWhisperCount(318.8,"99からの囁きと優しい語りを再生中。"));
+count89Test.addEventListener("click",()=>jumpToWhisperCount(418.8,"89からの新しいSuiの囁きを再生中。"));
 voiceTest.addEventListener("click",async()=>{
  if(!voiceSample.paused){voiceSample.pause();voiceSample.currentTime=0;voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";status.textContent="試聴を停止しました。";return;}
  try{audio.pause();voiceSample.currentTime=0;await voiceSample.play();voiceTest.textContent="■ Sui試聴を停止";status.textContent="Suiの録音を直接再生中。こちらで声が聞こえるか確認してね。";}
