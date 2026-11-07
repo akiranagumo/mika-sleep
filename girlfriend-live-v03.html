@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
-<title>SLEEPLESS — 会話相手を選ぶ Ver.1.2.3</title>
+<title>SLEEPLESS — 会話相手を選ぶ Ver.1.3.0</title>
 <meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
@@ -170,7 +170,7 @@ main> *{z-index:1}
 .stage-akira .portrait::after{content:"";position:absolute;z-index:2;pointer-events:none;left:0;right:0;bottom:0;height:20%;background:linear-gradient(180deg,transparent,#091e41ee 95%)}
 .stage-akira .stage-person .person-label{font-family:Georgia,serif;font-weight:800;letter-spacing:.12em}
 </style></head><body><main>
-<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.2.3</span></div>
+<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.3.0</span></div>
 <div class="live-title"><span class="live-pill"><i></i> NIGHT LIVE</span><span class="live-right">TWO VOICES · ONE NIGHT</span></div>
 <h1 id="headline">今夜は、誰と話したい？</h1>
 <div class="studio-stage" id="studioStage">
@@ -238,28 +238,37 @@ function relayDelay(){return pace()==="rapid"?1100:pace()==="slow"?6500:2900}
 function relayLine(from,line){
 if(!duoReady||!active||persona!=="duo"||duoTurns>=24||!line)return;
 const to=from==="mika"?"akira":"mika";
-duoExpected=to;
+// Block spontaneous/fake-silence responses while we wait for the previous line to finish.
+duoExpected=null;
 if(duoRelayTimer)clearTimeout(duoRelayTimer);
 duoRelayWaiting=true;
 async function tick(){
 if(!duoReady||!active||persona!=="duo")return;
 if(duoVoices[from]==="speaking"){duoRelayTimer=setTimeout(tick,450);return}
-duoRelayTimer=null;duoRelayWaiting=false;
+duoRelayTimer=null;
 try{
 await duoSessions[from]?.setVolume({volume:0});
 await duoSessions[to]?.setVolume({volume:to==="mika"?Number($("duoMikaBalance").value)/100:1});
-duoSessions[to]?.sendUserMessage("【番組内で"+(from==="mika"?"ミカ":"AKIRA")+"が話した台詞。ユーザー本人の発話ではない】"+String(line).slice(0,450)+"\n相手の話に自然に返答して。"+paceInstruction());
-duoTurns++;status("⚡ LIVE： "+(to==="mika"?"ミカ":"AKIRA")+"が話します（"+duoTurns+"/24）")
-}catch(e){status("LIVEの受け渡しに失敗："+(e?.message||String(e)))}
+if(!duoReady||!active)return;
+duoRelayWaiting=false;
+duoExpected=to;
+const cleanLine=String(line).replace(/\[[^\]]{1,25}\]/g,"").trim().slice(0,420);
+duoSessions[to]?.sendUserMessage("【番組内で"+(from==="mika"?"ミカ":"AKIRA")+"が話した台詞。ユーザー本人の発話ではない】"+cleanLine+"\n直前の内容に直接答え、1～2文で静かに自然につないで。質問の連発や話題の飛躍を避け、少しずつリラックスできる会話に。"+paceInstruction());
+duoTurns++;
+status("⚡ LIVE： "+(to==="mika"?"ミカ":"AKIRA")+"が話します（"+duoTurns+"/24）");
+}catch(e){duoExpected=null;duoRelayWaiting=false;status("LIVEの受け渡しに失敗："+(e?.message||String(e)))}
 }
 duoRelayTimer=setTimeout(tick,relayDelay())
 }
 function onDuoMessage(who,msg){
-const line=msg.message;if(!line)return;
-if(msg.source==="ai"||msg.source==="agent"){
+const line=typeof msg?.message==="string"?msg.message.trim():"";
+if(!line || msg.source!=="agent"&&msg.source!=="ai")return;
+// One actual AI reply is accepted for each forwarded line; reject stray responses to silence.
+if(!duoReady||duoExpected!==who||duoRelayWaiting)return;
+if(/^[.…\s、。!！?？]+$/.test(line))return;
+duoExpected=null;
 bubble(who==="mika"?"ミカ":"AKIRA",line);duoLast[who]=line;
-if(duoReady&&duoExpected===who&&!duoRelayWaiting){relayLine(who,line)}
-}else if(msg.source==="user"){ /* 番組内リレーはユーザーの発言として表示しない */ }
+relayLine(who,line);
 }
 async function beginDuo(){
 starting=true;$("start").disabled=true;status("ミカとAKIRAの2人につないでいます…");duoReady=false;duoExpected=null;duoTurns=0;duoLast={};cancelDuoTimers();
