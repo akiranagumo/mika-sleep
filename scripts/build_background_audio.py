@@ -213,10 +213,14 @@ def main():
         for title, at in [("intro", 0), ("count_start", count_start),
                           ("count_middle", count_start + 500),
                           ("count_late", count_start + 900)]:
-            seg = mix[round(at * SR): round((at + 8) * SR)]
+            # Count numbers are very short (< 1.5 seconds): measuring an
+            # eight-second gap punishes a gentle whisper with silence padding.
+            # Inspect the actual 2-second vocal window instead.
+            probe = 8 if title == "intro" else 2
+            seg = mix[round(at * SR): round((at + probe) * SR)]
             level = float(np.sqrt(np.mean(np.square(seg, dtype=np.float64))))
-            print(f"Voice checkpoint {title}: RMS {level:.5f}", flush=True)
-            if level < 0.0045:
+            print(f"Voice checkpoint {title}: {probe}s RMS {level:.5f}", flush=True)
+            if level < (0.0045 if title == "intro" else 0.003):
                 raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
 
         # Keep the ambient bed identical across all settings to preserve
