@@ -34,14 +34,15 @@ button{cursor:pointer;font-family:inherit}.start{display:block;background:linear
 import {Conversation} from "https://esm.sh/@elevenlabs/client@1.35.0";
 const AGENT_ID="agent_2401m6tafhbpf8htxyp6yr81xz65";
 const $=id=>document.getElementById(id);
-let session=null,starting=false,mode="auto",micOn=false,voiceMode="listening",lastAnswerAt=0,lastUserAt=0,autoTimer=null,limitTimer=null,noiseCtx=null,noiseGain=null,noiseSource=null,active=false;
+let session=null,starting=false,mode="auto",micOn=false,voiceMode="listening",lastAnswerAt=0,lastUserAt=0,autoTimer=null,limitTimer=null,autoContextSent=false,noiseCtx=null,noiseGain=null,noiseSource=null,active=false;
 const status=s=>$("status").textContent=s;
 function bubble(who,message){if(!message||!String(message).trim())return;const log=$("log"),e=document.createElement("div"),label=document.createElement("span");e.className="bubble"+(who==="あなた"?" user":"");label.className="who";label.textContent=who;e.append(label,document.createTextNode(String(message)));log.append(e);while(log.children.length>16)log.firstElementChild.remove();log.scrollTop=log.scrollHeight}
 function clearTimers(){if(autoTimer)clearTimeout(autoTimer);if(limitTimer)clearTimeout(limitTimer);autoTimer=null;limitTimer=null}
 function scheduleAuto(){
 // ElevenLabsの無言時の自動発話を使用する。自作の偽ユーザーメッセージは送信しない。
 if(autoTimer)clearTimeout(autoTimer);autoTimer=null;
-if(!active||!session||mode!=="auto")return;
+if(!active||!session||mode!=="auto"||autoContextSent)return;
+autoContextSent=true;
 try{session.sendContextualUpdate?.("現在は男性が無言で聴くおまかせ添い寝モードです。男性の発言を想像せず、同じ夜・同じ情景の中で、直前のあなたの話から自然に続きを話してください。新しい無関係な話題に飛ばないでください。")}catch(e){}
 }
 async function windSetup(){if(noiseCtx)return;noiseCtx=new(window.AudioContext||window.webkitAudioContext)();noiseGain=noiseCtx.createGain();noiseGain.gain.value=0;noiseGain.connect(noiseCtx.destination);const b=noiseCtx.createBuffer(1,noiseCtx.sampleRate*3,noiseCtx.sampleRate),v=b.getChannelData(0);let x=0;for(let i=0;i<v.length;i++){x=.985*x+.015*(Math.random()*2-1);v[i]=x*3.5}noiseSource=noiseCtx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const filter=noiseCtx.createBiquadFilter();filter.type="lowpass";filter.frequency.value=720;noiseSource.connect(filter);filter.connect(noiseGain);noiseSource.start()}
@@ -56,15 +57,15 @@ onConnect:()=>{status("ミカとつながりました。あなたは無言のま
 onDisconnect:()=>{if(session){session=null;uiStopped("接続が終了しました。")}},
 onError:e=>{status("音声接続エラー：" +(typeof e==="string"?e:e?.message||"接続を確認してください"))},
 onModeChange:m=>{voiceMode=m.mode||"listening";if(active)status(voiceMode==="speaking"?"ミカがお話ししています…":mode==="auto"?"ミカは次のお話を考えています…":"あなたのお話を待っています…")},
-onMessage:m=>{const v=m.message;if(!v)return;if(m.source==="ai"||m.source==="agent"){lastAnswerAt=Date.now();bubble("ミカ",v);scheduleAuto()}else if(m.source==="user"){lastUserAt=Date.now();if(!String(v).startsWith("【アプリからの自動継続通知"))bubble("あなた",v)}}});
-session=conv;active=true;starting=false;micOn=false;if(typeof session.setMicMuted==="function")session.setMicMuted(true);
+onMessage:m=>{const v=m.message;if(!v)return;if(m.source==="ai"||m.source==="agent"){lastAnswerAt=Date.now();bubble("ミカ",v);scheduleAuto()}else if(m.source==="user"){lastUserAt=Date.now();bubble("あなた",v)}}});
+session=conv;active=true;starting=false;micOn=false;autoContextSent=false;if(typeof session.setMicMuted==="function")session.setMicMuted(true);
 $("start").disabled=false;$("start").textContent="■ 会話を終了する";windVolume();lastAnswerAt=Date.now();lastUserAt=0;scheduleAuto();limitTimer=setTimeout(()=>finish(),9*60*1000);
 }catch(e){session=null;const detail=e?.message||String(e);const availability=/not available|unavailable|agent.*available/i.test(detail);uiStopped(availability?"ElevenLabs側で会話開始が拒否されました。音声制作でクレジット残高0のエラーが確認されています。ElevenLabsの契約・クレジット残高を確認してください（原因は未確定）。":"接続できませんでした："+detail+"。接続設定やブラウザのマイク許可を確認してください。")}}
 $("start").addEventListener("click",begin);
 $("form").addEventListener("submit",e=>{e.preventDefault();const text=$("text").value.trim();if(!text)return;if(!session){status("先に「ミカとの夜をはじめる」を押してください。");return}try{session.sendUserMessage(text);lastUserAt=Date.now();bubble("あなた",text);$("text").value=""}catch(err){status("メッセージを送れませんでした。")}});
 $("text").addEventListener("input",()=>{try{session?.sendUserActivity?.()}catch(e){}});
 $("mic").addEventListener("click",()=>{if(!session){status("先に会話を開始してください。");return}try{micOn=!micOn;session.setMicMuted(!micOn);$("mic").textContent=micOn?"🎙 マイクをオフにする":"🎙 マイクをオンにする";status(micOn?"マイクをオンにしました。話しかけてね。":"マイクをオフにしました。")}catch(e){micOn=false;status("マイクを切り替えられませんでした。")}});
-document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x.dataset.mode===mode));if(mode==="auto"){scheduleAuto();status("おまかせ添い寝。ミカが同じ夜の話を静かに続けるよ。")}else{if(autoTimer)clearTimeout(autoTimer);autoTimer=null;status("会話モード。文字か声で話しかけてね。")}}));
+document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x.dataset.mode===mode));if(mode==="auto"){autoContextSent=false;scheduleAuto();status("おまかせ添い寝。ミカが同じ夜の話を静かに続けるよ。")}else{if(autoTimer)clearTimeout(autoTimer);autoTimer=null;status("会話モード。文字か声で話しかけてね。")}}));
 $("wind").addEventListener("input",()=>{$("windText").textContent=$("wind").value+"%";windVolume()});
 window.addEventListener("pagehide",()=>{active=false;clearTimers();if(session){try{session.endSession()}catch(e){}}});
 </script></body></html>
