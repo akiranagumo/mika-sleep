@@ -20,6 +20,8 @@ jobs:
           python-version: '3.11'
       - name: Install audio builder dependencies
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
           python -m pip install --disable-pip-version-check 'numpy>=1.26,<3'
           ffmpeg -version | head -n 1
       - name: Render full 32-minute background playback file
