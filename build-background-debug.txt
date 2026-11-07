@@ -1,2 +1,0 @@
-Length: 1918.8s, 61432320 samples
-Created sleep-background-full.mp3: 18.3 MiB
