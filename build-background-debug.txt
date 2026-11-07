@@ -1,23 +1,2 @@
-Traceback (most recent call last):
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 183, in <module>
-    main()
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 64, in main
-    intro = from_b64("intro", b64_intro)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 62, in from_b64
-    return decode(path)
-           ^^^^^^^^^^^^
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 25, in decode
-    raw = subprocess.check_output([
-          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 466, in check_output
-    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 548, in run
-    with Popen(*popenargs, **kwargs) as process:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 1026, in __init__
-    self._execute_child(args, executable, preexec_fn, close_fds,
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 1955, in _execute_child
-    raise child_exception_type(errno_num, err_msg, err_filename)
-FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+Length: 1918.8s, 61432320 samples
+Created sleep-background-full.mp3: 18.3 MiB
