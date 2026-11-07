@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
-<title>SLEEPLESS — 会話相手を選ぶ Ver.0.8.0</title>
+<title>SLEEPLESS — 会話相手を選ぶ Ver.0.9.0</title>
 <meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
@@ -130,8 +130,10 @@ h1{font-size:clamp(25px,4vw,43px);font-weight:600;text-shadow:0 0 25px #ffb2e999
 :root[data-persona=duo] .bubble:not(.user){background:linear-gradient(110deg,#ad4b9c38,#33579d38)!important}
 @media(max-width:650px){main{padding:20px 14px}.studio-stage{min-height:268px;border-radius:21px}.stage-half{padding:8px 5px 15px}.portrait{width:min(90%,152px);height:183px;border-radius:90px 90px 13px 13px}.stage-halo{top:37px;width:135px;height:135px}.stage-person{margin-top:6px}.person-label{font-size:17px;letter-spacing:2px}.person-sub{font-size:9px;max-width:120px;text-align:center}.center-beam{width:43px;height:43px;font-size:27px}.stage-stars{font-size:10px;letter-spacing:5px}.personas{gap:5px}.personas button{font-size:11px;padding:10px 3px;min-height:60px}.studio-bar{padding:12px 10px;gap:7px}.topic-options{grid-template-columns:1fr}.live-right{display:none}.studio-tag{display:none}.profilegrid{grid-template-columns:1fr}.profilegrid label{grid-column:1/-1}.audio-bars{display:none}}
 @media(prefers-reduced-motion:reduce){.audio-bars b,.live-pill i{animation:none}}.stage-half[role=button]{cursor:pointer}.stage-half[role=button]:focus-visible{outline:3px solid white;outline-offset:-4px}
+
+.quick-live{margin:16px 0 19px;text-align:center}.quick-live button{display:block;width:100%;min-height:71px;padding:12px 14px;border:2px solid #ffedb4;border-radius:23px;color:#fff8e5;text-shadow:0 0 18px #ffb95a;background:linear-gradient(105deg,#ac205e,#d86920 48%,#1b72bc);box-shadow:0 0 25px #ffb24588,0 8px 30px #0009,inset 0 0 12px #ffdf8e55;font-size:clamp(15px,2.4vw,21px);font-weight:900;letter-spacing:.05em;animation:livePulse 3.4s ease-in-out infinite}.quick-live p{font-size:12px;color:#ecd9ef;margin:9px 0 0}@keyframes livePulse{50%{box-shadow:0 0 55px #ffbb48bb,0 8px 30px #0009,inset 0 0 20px #ffdf8e88}}.studio-stage[data-speaker=mika] .stage-mika,.studio-stage[data-speaker=akira] .stage-akira{filter:brightness(1.12) saturate(1.15)}@media(prefers-reduced-motion:reduce){.quick-live button{animation:none}}
 </style></head><body><main>
-<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.0.8.0</span></div>
+<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.0.9.0</span></div>
 <div class="live-title"><span class="live-pill"><i></i> NIGHT LIVE</span><span class="live-right">TWO VOICES · ONE NIGHT</span></div>
 <h1 id="headline">今夜は、誰と話したい？</h1>
 <div class="studio-stage" id="studioStage">
@@ -147,6 +149,7 @@ h1{font-size:clamp(25px,4vw,43px);font-weight:600;text-shadow:0 0 25px #ffb2e999
 <p class="tagline">気分に合わせて、話し相手を選んでね。<br>返事をしなくても大丈夫。</p>
 <div class="personas" aria-label="誰と話したい？"><button type="button" data-persona="mika" class="active" aria-pressed="true">♡ ミカと話す</button><button type="button" data-persona="akira" aria-pressed="false">✦ AKIRAと話す</button><button type="button" data-persona="duo" aria-pressed="false">⚡ 二人の LIVEトーク</button></div><div id="personaHelp" class="personahelp">ミカと過ごす、ふたりだけの特別な夜。</div>
 <div class="studio-bar"><span class="studio-tag">TALK ENGINE</span><label class="speed-label" for="talkPace">トーク密度</label><select id="talkPace"><option value="slow">ゆったり</option><option value="normal" selected>ふつう</option><option value="rapid">⚡ マシンガン</option></select><span id="paceHint">会話のテンポを調整</span></div>
+<div class="quick-live"><button id="liveQuick" type="button">⚡ MIKA × AKIRA　2人のLIVEを開始 ▶</button><p>ここを押すだけで、二人の番組が始まるよ。下でテーマも選べる。</p></div>
 <div class="live-settings" id="liveSettings" hidden><div class="live-settings-title">⚡ MIKA × AKIRA — LIVE RADIO</div><p>NotebookLMの音声番組のように、二人がテーマに沿って掛け合う試作モード。両方の音声接続を使用するため利用枠を消費します。</p><div class="topic-options"><label>話題を選ぶ<select id="liveTopic"><option value="週末デートと旅行">週末デートと旅行</option><option value="恋愛・男女の本音">恋愛・男女の本音</option><option value="ちょっと不思議な宇宙や哲学">ちょっと不思議な宇宙や哲学</option><option value="映画・音楽・夜の過ごし方">映画・音楽・夜の過ごし方</option><option value="仕事のストレスと休日">仕事のストレスと休日</option><option value="今夜の気まぐれ雑談">今夜の気まぐれ雑談</option></select></label><label>自由入力<textarea id="liveCustom" rows="2" maxlength="220" placeholder="例：二人で温泉旅行の計画を立てて。少し笑える感じで"></textarea></label></div><div class="pilot-note">※ 試験版：2人の声の重なりや接続制限は調整中。画面上の人物はイラスト表現です。</div></div>
 <div class="choice" aria-label="会話のモード"><button type="button" data-mode="auto" class="active">♡ おまかせ添い寝</button><button type="button" data-mode="chat">✎ 会話する</button><button type="button" data-mode="advice">☾ 相談する</button></div>
 <details class="profile" id="profile" open><summary id="profileSummary">♡ 相手に、あなたのことを少し教える（任意）</summary><div class="profilegrid"><label>呼び名<input id="pName" maxlength="25" placeholder="例：山田太郎"></label><label>年齢<input id="pAge" type="number" min="18" max="110" placeholder="例：35"></label><label class="wide">好きなこと・趣味（選択）<select id="pHobbyChoice"><option value="">選ばなくてもOK</option><option value="映画・ドラマ">映画・ドラマ</option><option value="旅行・温泉">旅行・温泉</option><option value="音楽">音楽</option><option value="釣り・アウトドア">釣り・アウトドア</option><option value="スポーツ">スポーツ</option><option value="ゲーム・読書">ゲーム・読書</option><option value="料理・グルメ">料理・グルメ</option></select></label><label class="wide">趣味・好きなこと（自由記入）<textarea id="pHobby" maxlength="240" placeholder="例：読書、散歩、映画鑑賞"></textarea></label><label class="wide">最近の気持ち（選択）<select id="pMoodChoice"><option value="">選ばなくてもOK</option><option value="仕事が忙しくて疲れ気味">仕事が忙しくて疲れ気味</option><option value="職場の人間関係に悩んでいる">職場の人間関係に悩んでいる</option><option value="最近ストレスが多い">最近ストレスが多い</option><option value="ちょっと寂しい">ちょっと寂しい</option><option value="楽しいことを探している">楽しいことを探している</option><option value="特に悩みはない">特に悩みはない</option></select></label><label class="wide">悩み・仕事の愚痴（自由記入）<textarea id="pMood" maxlength="300" placeholder="例：仕事で少し疲れている。休みの日は気分転換したい"></textarea></label><label>あなたの恋愛タイプ<select id="pDynamic"><option value="">未設定・おまかせ</option><option value="S寄り">S寄り・からかう方が好き</option><option value="M寄り">M寄り・からかわれる方が好き</option><option value="どちらも">どちらも好き</option><option value="穏やか">穏やかに甘えたい</option></select></label><label id="personaTypeLabel">ミカの性格<select id="pMika"><option value="ツンデレから甘々">ミカにおまかせ（おすすめ）</option><option value="小悪魔から甘々">小悪魔タイプ</option><option value="お姉さんから甘々">お姉さんタイプ</option><option value="甘えん坊">最初から甘えん坊</option><option value="毎回ランダム">毎晩違うミカ</option></select></label><label class="wide">あなたの恋愛タイプ（自由記入）<textarea id="pDynamicOther" maxlength="200" placeholder="例：気軽に冗談を言い合える関係が好き"></textarea></label><label class="wide" id="personaStyleLabel">相手の性格や話し方（自由記入）<textarea id="pMikaOther" maxlength="240" placeholder="例：明るく親しみやすい話し方が好き"></textarea></label></div><p class="profilesmall">空欄でも始められるよ。入力内容はこのブラウザに保存され、会話開始時に選んだ相手の会話サービスへ送られます。個人情報・勤務先名などは書かなくて大丈夫。いつでも消せるよ。</p><div class="profileactions"><button id="pSave" type="button">保存する</button><button id="pClear" type="button">全部消す</button></div><div id="pStatus" class="profilesmall" role="status"></div></details>
@@ -191,6 +194,7 @@ function profileContext(){const p=readProfile();const fields=[];if(p.pName)field
 let session=null,starting=false,mode="auto",micOn=false,voiceMode="listening",lastAnswerAt=0,lastUserAt=0,autoTimer=null,limitTimer=null,autoContextSent=false,noiseCtx=null,noiseGain=null,noiseSource=null,active=false;
 let duoSessions={},duoReady=false,duoPending=null,duoExpected=null,duoTurns=0,duoLast={},duoRelayTimer=null,rapidTimer=null;
 const pace=()=>$("talkPace").value;
+let duoVoices={mika:"listening",akira:"listening"},duoRelayWaiting=false;
 function paceInstruction(){return pace()==="rapid"?"マシンガントーク。無駄な沈黙は少なく、短い台詞でテンポよく、笑いと話題転換を多めに。":"ゆったり"===pace()?"ゆったりした夜。落ち着いた短い言葉を、間を保ちながら。":"自然な恋人の雑談。"}
 function cancelDuoTimers(){if(duoRelayTimer)clearTimeout(duoRelayTimer);duoRelayTimer=null;if(rapidTimer)clearTimeout(rapidTimer);rapidTimer=null}
 function relayDelay(){return pace()==="rapid"?1100:pace()==="slow"?6500:2900}
@@ -199,13 +203,25 @@ if(!duoReady||!active||persona!=="duo"||duoTurns>=24||!line)return;
 const to=from==="mika"?"akira":"mika";
 duoExpected=to;
 if(duoRelayTimer)clearTimeout(duoRelayTimer);
-duoRelayTimer=setTimeout(()=>{duoRelayTimer=null;if(!duoReady||!active||duoTurns>=24)return;try{duoSessions[to]?.sendUserMessage("【番組内で"+(from==="mika"?"ミカ":"AKIRA")+"が直前に話した台詞。これはユーザー本人の発話ではない】"+String(line).slice(0,450)+"\n上の話に自然にリアクションして。"+paceInstruction());duoTurns++;status("LIVE："+(to==="mika"?"ミカ":"AKIRA")+"が返しています…（"+duoTurns+"/24）")}catch(e){status("トークの引き継ぎに失敗しました。")}},relayDelay())
+duoRelayWaiting=true;
+async function tick(){
+if(!duoReady||!active||persona!=="duo")return;
+if(duoVoices[from]==="speaking"){duoRelayTimer=setTimeout(tick,450);return}
+duoRelayTimer=null;duoRelayWaiting=false;
+try{
+await duoSessions[from]?.setVolume({volume:0});
+await duoSessions[to]?.setVolume({volume:1});
+duoSessions[to]?.sendUserMessage("【番組内で"+(from==="mika"?"ミカ":"AKIRA")+"が話した台詞。ユーザー本人の発話ではない】"+String(line).slice(0,450)+"\n相手の話に自然に返答して。"+paceInstruction());
+duoTurns++;status("⚡ LIVE： "+(to==="mika"?"ミカ":"AKIRA")+"が話します（"+duoTurns+"/24）")
+}catch(e){status("LIVEの受け渡しに失敗："+(e?.message||String(e)))}
+}
+duoRelayTimer=setTimeout(tick,relayDelay())
 }
 function onDuoMessage(who,msg){
 const line=msg.message;if(!line)return;
 if(msg.source==="ai"||msg.source==="agent"){
 bubble(who==="mika"?"ミカ":"AKIRA",line);duoLast[who]=line;
-if(duoReady&&duoExpected===who){relayLine(who,line)}
+if(duoReady&&duoExpected===who&&!duoRelayWaiting){relayLine(who,line)}
 }else if(msg.source==="user"){ /* 番組内リレーはユーザーの発言として表示しない */ }
 }
 async function beginDuo(){
@@ -217,17 +233,17 @@ const con=await Conversation.startSession({agentId:AGENTS[who],connectionType:"w
 onConnect:()=>status((who==="mika"?"ミカ":"AKIRA")+"が接続しました…"),
 onDisconnect:()=>{if(duoReady){status("接続が切れました。再度はじめるには一度終了してね。");duoReady=false}},
 onError:e=>status("LIVE接続エラー："+(e?.message||String(e))),
-onModeChange:m=>{},
+onModeChange:m=>{duoVoices[who]=m.mode||"listening";$("studioStage").dataset.speaker=m.mode==="speaking"?who:""},
 onMessage:m=>onDuoMessage(who,m)});
 duoSessions[who]=con;
-if(typeof con.setMicMuted==="function")con.setMicMuted(true);
+if(typeof con.setMicMuted==="function")con.setMicMuted(true);try{await con.setVolume({volume:0})}catch(e){}
 try{con.sendContextualUpdate?.("SLEEPLESS LIVE RADIO。あなたは"+(who==="mika"?"ミカ":"AKIRA")+"。相手は"+(who==="mika"?"AKIRA":"ミカ")+"という別のAIキャラクター。お互いの台詞をリレーする会話番組。システムが届ける相手の台詞を聞いて自然に返す。ユーザー本人の発言と誤認しない。日本語で短い2～3文、ひとつの話題を引っ張りすぎず、自然に脱線する。"+paceInstruction())}catch(e){}
 }
-active=true;starting=false;duoReady=true;
+active=true;starting=false;duoReady=true;try{await duoSessions.mika?.setVolume({volume:1})}catch(e){}
 const selected=$("liveCustom").value.trim()||$("liveTopic").value;
 const prompt="【番組開始：ミカとAKIRAのLIVEトーク。ユーザー本人の発言ではありません】テーマ："+selected.slice(0,220)+"。ミカが短く元気に話しかけ、AKIRAがそれに返す。"+paceInstruction();
 $("log").replaceChildren();bubble("STUDIO","今夜のテーマ："+selected);
-try{duoSessions.mika.sendUserMessage(prompt);duoExpected="mika"}catch(e){throw e}
+try{duoExpected="mika";duoSessions.mika.sendUserMessage(prompt)}catch(e){throw e}
 $("start").disabled=false;$("start").textContent="■ LIVEを終了する";windVolume();limitTimer=setTimeout(()=>finish(),7*60*1000);status("2人のLIVEが始まりました。");
 }catch(e){duoReady=false;duoExpected=null;const old=duoSessions;duoSessions={};for(const x of Object.values(old))try{await x.endSession()}catch(_){};uiStopped("二人の接続に失敗："+(e?.message||String(e)));}
 }
@@ -239,7 +255,7 @@ rapidTimer=setTimeout(()=>{if(!active||!session||mode!=="auto"||pace()!=="rapid"
 
 const status=s=>$("status").textContent=s;
 function bubble(who,message){if(!message||!String(message).trim())return;const log=$("log"),e=document.createElement("div"),label=document.createElement("span");e.className="bubble"+(who==="あなた"?" user":"");label.className="who";label.textContent=who;e.append(label,document.createTextNode(String(message)));log.append(e);while(log.children.length>16)log.firstElementChild.remove();log.scrollTop=log.scrollHeight}
-function clearTimers(){if(autoTimer)clearTimeout(autoTimer);if(limitTimer)clearTimeout(limitTimer);autoTimer=null;limitTimer=null;cancelDuoTimers()}
+function clearTimers(){if(autoTimer)clearTimeout(autoTimer);if(limitTimer)clearTimeout(limitTimer);autoTimer=null;limitTimer=null;cancelDuoTimers();duoRelayWaiting=false}
 function scheduleAuto(){
 // ElevenLabsの無言時の自動発話を使用する。自作の偽ユーザーメッセージは送信しない。
 if(autoTimer)clearTimeout(autoTimer);autoTimer=null;
@@ -271,6 +287,8 @@ document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",(
 $("wind").addEventListener("input",()=>{$("windText").textContent=$("wind").value+"%";windVolume()});
 function selectPersona(next){if(active||starting){status("会話を終了してから、話し相手を変更してね。");return}persona=next;$("liveSettings").hidden=next!=="duo";$("profile").open=next!=="duo";document.querySelectorAll("[data-persona]").forEach(b=>{b.classList.toggle("active",b.dataset.persona===persona);b.setAttribute("aria-pressed",String(b.dataset.persona===persona))});$("headline").textContent="今夜は、誰と話したい？";document.documentElement.dataset.persona=persona;$("personaHelp").textContent=persona==="mika"?"ミカと過ごす、ふたりだけの特別な夜。":persona==="akira"?"実在のAKIRAの声と人柄をもとに再現したAIキャラクターと話せるよ。":"⚡ 二人の掛け合いLIVE。今夜のテーマを選んでね。";$("start").textContent="▶ "+personaName()+"との夜をはじめる";$("text").placeholder=personaName()+"にメッセージを書く…";$("profileSummary").textContent="♡ "+personaName()+"に、あなたのことを少し教える（任意）";$("personaTypeLabel").childNodes[0].textContent=personaName()+"の性格";$("log").replaceChildren();bubble(personaName(),persona==="mika"?"……ねえ。今夜は私から話してもいい？":persona==="akira"?"こんばんは。今日は僕と、少し話していかない？":"MIKA × AKIRA — 今夜はどんな話で盛り上がろう？");$("pMika").disabled=persona==="akira";$("personaTypeLabel").style.opacity=persona==="akira"?.45:1;$("mic").disabled=persona==="duo";status("待機中（1回の会話は最大10分）")}
 document.querySelectorAll("[data-persona]").forEach(b=>b.addEventListener("click",()=>selectPersona(b.dataset.persona)));
+$("liveQuick").addEventListener("click",()=>{if(persona!=="duo")selectPersona("duo");if(!active&&!starting)begin();else status("LIVE中。下の■ボタンから終了できるよ。")});
+
 for(const [id,person] of [["stageMika","mika"],["stageAkira","akira"]]){const el=$(id);el.addEventListener("click",()=>selectPersona(person));el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectPersona(person)}})}
 
 $("talkPace").addEventListener("change",()=>{$("paceHint").textContent=pace()==="rapid"?"⚡ 次々と短い台詞で進行":pace()==="slow"?"ゆったりした雑談":"自然な会話のテンポ";if(active){try{if(persona==="duo")for(const c of Object.values(duoSessions))c.sendContextualUpdate?.(paceInstruction());else session?.sendContextualUpdate?.(paceInstruction())}catch(e){}rapidNext()}});
