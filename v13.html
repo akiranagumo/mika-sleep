@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.2</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.3</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,22 +34,23 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.2 · WIND CONTROL</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.3 · WIND CONTROL</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
 <p class="tag">Suiの声で、呼吸を整え、静かな情景へ。<br>あとは目を閉じて、音に身を任せてね。</p>
-<div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>音声を1本のMP3に統合し、iPhoneの標準プレーヤーで再生します。</div>
+<div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
 <button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
 <div class="wind-row"><label for="wind">風の音（環境音）</label><span class="wind-label" id="windLabel">なし · 0%</span></div>
 <input class="wind-slider" type="range" id="wind" min="0" max="4" step="1" value="0" aria-label="風の音量を5段階で調整">
-<div class="wind-ticks"><span>なし</span><span>ごく小</span><span>小</span><span>中</span><span>大</span></div>
+<div class="wind-ticks"><span>なし</span><span>微風</span><span>弱</span><span>中</span><span>強</span></div>
+<button class="button secondary" type="button" id="windTest">♫ 選んだ風の音だけを8秒試聴</button>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-wind-2"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-wind-audible-133"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。初期設定は風の音なし。風の音は5段階から選べます。iPhoneでの画面ロック中の再生を保つため、設定を変えると音源を切り替えます。切り替え時に少し音が途切れる場合があります。</p>
+<p class="note">約32分の睡眠誘導です。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -70,47 +71,106 @@ const back10=document.getElementById("back10");
 const wind=document.getElementById("wind");
 const windLabel=document.getElementById("windLabel");
 const presetFiles=[
- ["なし · 0%", "sleep-background-full.mp3"],
- ["ごく小 · 0.2%", "sleep-background-wind-02.mp3"],
- ["小 · 0.5%", "sleep-background-wind-05.mp3"],
- ["中 · 1.0%", "sleep-background-wind-10.mp3"],
- ["大 · 2.0%", "sleep-background-wind-20.mp3"]
+ ["なし","sleep-background-full.mp3"],
+ ["微風","sleep-background-wind-02.mp3"],
+ ["弱","sleep-background-wind-05.mp3"],
+ ["中","sleep-background-wind-10.mp3"],
+ ["強","sleep-background-wind-20.mp3"]
 ];
-let presetIndex=0;
-try{const x=Number(localStorage.getItem("akira_sleep_wind_v132"));if(Number.isInteger(x)&&x>=0&&x<5)presetIndex=x}catch(e){}
+const audioTag="v=20261108-wind-audible-133";
+const presetUrl=i=>"./"+presetFiles[i][1]+"?"+audioTag;
+const windTest=document.getElementById("windTest");
+const windPreview=new Audio();
+windPreview.preload="none";
+const storageKey="akira_sleep_wind_v133";
+let presetIndex=0, windTimer=null, sourceGeneration=0;
+try {
+  const saved=localStorage.getItem(storageKey);
+  if(saved!==null){
+    const x=Number(saved);
+    if(Number.isInteger(x)&&x>=0&&x<presetFiles.length)presetIndex=x;
+  }
+}catch(e){}
 wind.value=String(presetIndex);
 windLabel.textContent=presetFiles[presetIndex][0];
-const presetUrl=i=>"./"+presetFiles[i][1]+"?v=20261108-wind-2";
 audio.src=presetUrl(presetIndex);
+function stopWindPreview(){
+  windPreview.pause();
+  windTest.textContent="♫ 選んだ風の音だけを8秒試聴";
+}
 function switchWind(i){
-  if(i===presetIndex)return;
+  if(!Number.isInteger(i)||i<0||i>=presetFiles.length||i===presetIndex)return;
   presetIndex=i;
+  wind.value=String(i);
   windLabel.textContent=presetFiles[i][0];
-  try{localStorage.setItem("akira_sleep_wind_v132",String(i))}catch(e){}
-  const keepTime=audio.currentTime||0;
-  const shouldResume=!audio.paused&&!audio.ended;
+  try{localStorage.setItem(storageKey,String(i))}catch(e){}
+  stopWindPreview();
+  const oldPosition=audio.currentTime||0;
+  const resume=!audio.paused&&!audio.ended;
+  const generation=++sourceGeneration;
   audio.pause();
+  audio.addEventListener("loadedmetadata",()=>{
+    if(generation!==sourceGeneration)return;
+    try{
+      if(Number.isFinite(audio.duration))
+        audio.currentTime=Math.min(oldPosition,Math.max(0,audio.duration-0.2));
+    }catch(e){}
+    update();
+  },{once:true});
   audio.src=presetUrl(i);
   audio.load();
-  const restoreTime=()=>{
-    if(Number.isFinite(audio.duration))try{audio.currentTime=Math.min(keepTime,Math.max(0,audio.duration-0.1))}catch(e){}
-    update();
-  };
-  audio.addEventListener("loadedmetadata",restoreTime,{once:true});
-  try{audio.currentTime=keepTime}catch(e){}
-  if(shouldResume){
-    status.textContent="風の音を「"+presetFiles[i][0]+"」に変更中。再生位置を保って音声を再開します。";
-    audio.play().then(()=>{status.textContent="風の音："+presetFiles[i][0]+"。再生中。";}).catch(e=>{
-      status.textContent="音源の切り替えで再生が止まりました。上の「再生を続ける」を押してください。詳細："+(e?.message||e);
+  try{audio.currentTime=oldPosition}catch(e){}
+  if(resume){
+    status.textContent="風の音「"+presetFiles[i][0]+"」へ切り替え中…";
+    audio.play().then(()=>{
+      if(generation===sourceGeneration)
+        status.textContent="風の音："+presetFiles[i][0]+"。再生中。";
+    }).catch(e=>{
+      if(generation===sourceGeneration)
+        status.textContent="切り替え後に再生が停止しました。「再生を続ける」を押してください。詳細："+(e?.message||e);
       update();
     });
-  } else {
-    status.textContent="風の音："+presetFiles[i][0]+"。次の再生から反映します。";
+  }else{
+    status.textContent="風の音："+presetFiles[i][0]+" に変更しました。";
   }
   update();
 }
-wind.addEventListener("input",()=>{windLabel.textContent=presetFiles[Number(wind.value)][0];});
-wind.addEventListener("change",()=>switchWind(Number(wind.value)));
+function applyWind(){
+  clearTimeout(windTimer);
+  switchWind(Number(wind.value));
+}
+wind.addEventListener("input",()=>{
+  const i=Number(wind.value);
+  windLabel.textContent=presetFiles[i][0];
+  clearTimeout(windTimer);
+  windTimer=setTimeout(applyWind,300);
+});
+wind.addEventListener("change",applyWind);
+wind.addEventListener("pointerup",applyWind);
+wind.addEventListener("touchend",applyWind);
+wind.addEventListener("keyup",applyWind);
+windTest.addEventListener("click",async()=>{
+  if(!windPreview.paused){stopWindPreview();status.textContent="風の音の試聴を停止しました。";return;}
+  if(presetIndex===0){
+    status.textContent="現在「なし」です。バーを「微風」以上に動かしてから試聴してください。";
+    return;
+  }
+  audio.pause();
+  try{voiceSample.pause()}catch(e){}
+  windPreview.src="./wind-preview-"+presetIndex+".mp3?"+audioTag;
+  windPreview.currentTime=0;
+  try{
+    await windPreview.play();
+    windTest.textContent="■ 風の音の試聴を停止";
+    status.textContent="「"+presetFiles[presetIndex][0]+"」の風だけを8秒間試聴中。本編は一時停止しています。";
+  }catch(e){
+    status.textContent="風の音の試聴に失敗しました。詳細："+(e?.message||e);
+  }
+});
+windPreview.addEventListener("ended",()=>{
+  stopWindPreview();
+  status.textContent="風の音だけの試聴が終わりました。「再生を続ける」でSuiの睡眠導入を再開できます。";
+});
 const voiceTest=document.getElementById("voiceTest");
 const voiceSample=new Audio("./sui-breath-new-intro.mp3");
 voiceSample.preload="none";
@@ -125,7 +185,7 @@ function update(){const duration=Number.isFinite(audio.duration)?audio.duration:
  play.textContent=audio.paused?"▶ "+(audio.currentTime>0?"再生を続ける":"睡眠導入をはじめる"):"Ⅱ 一時停止";
  if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=audio.paused?"paused":"playing";if(duration&&navigator.mediaSession.setPositionState)navigator.mediaSession.setPositionState({duration,playbackRate:1,position:Math.min(duration,audio.currentTime)})}catch(e){}}
 }
-async function toggle(){try{if(audio.paused){voiceSample.pause();voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
+async function toggle(){try{if(audio.paused){stopWindPreview();voiceSample.pause();voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
 play.addEventListener("click",toggle);
 voiceTest.addEventListener("click",async()=>{
  if(!voiceSample.paused){voiceSample.pause();voiceSample.currentTime=0;voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";status.textContent="試聴を停止しました。";return;}
