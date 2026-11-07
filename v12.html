@@ -8,14 +8,15 @@
 <script>
 (()=>{
 'use strict';const $=id=>document.getElementById(id), info=s=>$('status').textContent=s;
-let ctx,noiseGain,voiceGain,noiseSource,digits,auto,digitSeg,autoSeg,intro=null,introBuf=null,suiInhale=null,suiExhale=null,playing=false,mode='ready',phaseAt=0,currentIndex=-1,currentPhrase=-1,raf=0,activeSources=[],total=0,breathCue=-1,noiseBeganAt=null;
+let ctx,noiseGain,voiceGain,noiseSource,digits,auto,digitSeg,autoSeg,intro=null,introBuf=null,suiInhale=null,suiExhale=null,suiDigits=[],playing=false,mode='ready',phaseAt=0,currentIndex=-1,currentPhrase=-1,raf=0,activeSources=[],total=0,breathCue=-1,noiseBeganAt=null;
 const fmt=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 function encodedToBytes(s){const raw=atob(s),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes.buffer}
 async function initAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();voiceGain=ctx.createGain();voiceGain.gain.value=.85;voiceGain.connect(ctx.destination);noiseGain=ctx.createGain();noiseGain.gain.value=0;noiseGain.connect(ctx.destination);const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),d=b.getChannelData(0);let x=0;for(let i=0;i<d.length;i++){x=.986*x+.014*(Math.random()*2-1);d[i]=x*3.8}noiseSource=ctx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=820;noiseSource.connect(lp);lp.connect(noiseGain);noiseSource.start();noiseBeganAt=ctx.currentTime}volume()}
 function volume(){if(!ctx)return;const fadeOut=mode==='tail'?Math.max(0,Math.min(1,(600-(ctx.currentTime-phaseAt))/120)):1;const fadeIn=playing?Math.min(1,Math.max(0,(ctx.currentTime-noiseBeganAt)/4)):0;noiseGain.gain.setTargetAtTime(Number($('volume').value)/100*.45*fadeIn*fadeOut,ctx.currentTime,.25)}
 function playClip(buf,start=0,length){const a=ctx.createBufferSource();const g=ctx.createGain();const duration=Math.min(length??buf.duration,buf.duration-start);a.buffer=buf;a.connect(g);g.connect(voiceGain);g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(1,ctx.currentTime+.045);g.gain.setValueAtTime(1,ctx.currentTime+Math.max(.05,duration-.06));g.gain.linearRampToValueAtTime(0,ctx.currentTime+duration);a.start(ctx.currentTime,start,duration);activeSources.push(a);a.onended=()=>{activeSources=activeSources.filter(s=>s!==a)};return a}
 function stopSources(){for(const a of activeSources){try{a.stop()}catch(e){}}activeSources=[]}
-function playBreath(buffer,seconds){if(!buffer)return;const source=ctx.createBufferSource(),gain=ctx.createGain(),now=ctx.currentTime;source.buffer=buffer;source.playbackRate.value=buffer.duration/seconds;source.connect(gain);gain.connect(voiceGain);gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(1,now+.07);gain.gain.setValueAtTime(1,now+seconds-.09);gain.gain.linearRampToValueAtTime(0,now+seconds);source.start(now);source.stop(now+seconds);activeSources.push(source);source.onended=()=>activeSources=activeSources.filter(x=>x!==source)}
+function playPrompt(buffer){if(!buffer)return;const len=Math.min(1.20,buffer.duration);playClip(buffer,0,len)}
+function playDigit(n){const b=suiDigits[n-1];if(b)playClip(b,0,Math.min(.98,b.duration))}
 const phraseIndex={96:0,91:1,86:2,76:3,71:4,66:5,56:6,46:7,36:8,26:9};
 const phrases={96:'右手が重たい',91:'左手も重たい',86:'両足が重たい',76:'右手が温かい',71:'左手も温かい',66:'身体が温かい',56:'呼吸は楽で自然',46:'お腹が温かい',36:'額が涼しい',26:'身体の力が抜けていきます'};
 const views=[{text:'今、あなたは美しい自然の中にいます。',at:0},{text:'柔らかな草の上に、ゆったり横たわっています。',at:13},{text:'遠くには、緑に包まれた山々。',at:26},{text:'頬をなでる、とても穏やかな風。',at:39},{text:'日常の忙しさから、少しだけ離れて。',at:52},{text:'考えごとを手放し、静けさを感じてください。',at:65}];
@@ -26,31 +27,36 @@ function finish(){playing=false;cancelAnimationFrame(raf);try{window.speechSynth
 function frame(){if(!playing)return;const t=ctx.currentTime-phaseAt;let elapsed=0;
 if(mode==='intro'){elapsed=t;$('phase').textContent='はじめに';$('num').textContent='☾';$('sub').textContent='今は、何も頑張らなくていいですよ。';if(t>=introBuf.duration+.4)startPhase('breath')}
 else if(mode==='breath'){
-elapsed=introBuf.duration+t;
-const cycle=Math.min(2,Math.floor(t/10)),sec=t-cycle*10,inhale=sec<4;
-$('phase').textContent='呼吸の練習 '+(cycle+1)+' / 3';
-$('num').textContent='☾';
-$('sub').textContent=inhale?'静かに4秒吸います':'ゆっくり6秒吐きます';
-const key=cycle*2+(inhale?0:1);
-if(key!==breathCue&&t<30){
- breathCue=key;
- const clip=inhale?suiInhale:suiExhale;
- const duration=inhale?4:6;
- playBreath(clip,duration);
+  const cycleLength=12.6,cycle=Math.min(2,Math.floor(t/cycleLength));
+  const sec=t-cycle*cycleLength,slot=Math.floor(sec*100)/100;
+  elapsed=introBuf.duration+t;
+  $('phase').textContent='呼吸の練習 '+(cycle+1)+' / 3';
+  $('num').textContent='☾';
+  $('sub').textContent=sec<5.25?'4秒かけて吸います':'6秒かけて吐きます';
+  let key=-1,kind='',n=0;
+  if(sec<1.2){key=0;kind='inhale'}
+  else if(sec<5.2){n=Math.floor(sec-1.2)+1;key=n;kind='digit'}
+  else if(sec<6.4){key=5;kind='exhale'}
+  else if(sec<12.4){n=Math.floor(sec-6.4)+1;key=5+n;kind='digit'}
+  if(key>=0&&breathCue!==cycle*20+key){
+    breathCue=cycle*20+key;
+    if(kind==='inhale')playPrompt(suiInhale);
+    else if(kind==='exhale')playPrompt(suiExhale);
+    else playDigit(n);
+  }
+  if(t>=cycleLength*3)startPhase('nature')
 }
-if(t>=30)startPhase('nature')
-}
-else if(mode==='nature'){elapsed=introBuf.duration+30+t;$('phase').textContent='自然のイメージ誘導';$('num').textContent='☾';let v=views[0];for(const item of views){if(t>=item.at)v=item}$('sub').textContent=v.text;if(t>=80)startPhase('count')}
-else if(mode==='count'){const i=Math.min(100,Math.floor(t/10)),n=100-i,sec=t%10;elapsed=introBuf.duration+110+Math.min(t,1010);$('phase').textContent='自律訓練法とカウント';$('num').textContent=n;$('sub').textContent=phrases[n]||'数字を追わずに、ゆったりと。';if(i!==currentIndex){currentIndex=i;const s=digitSeg[i];if(s)playClip(digits,s.start,Math.min(5.3,s.end-s.start));}
+else if(mode==='nature'){elapsed=introBuf.duration+37.8+t;$('phase').textContent='自然のイメージ誘導';$('num').textContent='☾';let v=views[0];for(const item of views){if(t>=item.at)v=item}$('sub').textContent=v.text;if(t>=80)startPhase('count')}
+else if(mode==='count'){const i=Math.min(100,Math.floor(t/10)),n=100-i,sec=t%10;elapsed=introBuf.duration+117.8+Math.min(t,1010);$('phase').textContent='自律訓練法とカウント';$('num').textContent=n;$('sub').textContent=phrases[n]||'数字を追わずに、ゆったりと。';if(i!==currentIndex){currentIndex=i;const s=digitSeg[i];if(s)playClip(digits,s.start,Math.min(5.3,s.end-s.start));}
 if(Object.prototype.hasOwnProperty.call(phraseIndex,n)&&currentPhrase!==n&&sec>=3.6){currentPhrase=n;const s=autoSeg[phraseIndex[n]];if(s)playClip(auto,s.start,Math.min(5.7,s.end-s.start));}
 if(t>=1010)startPhase('tail')}
-else if(mode==='tail'){elapsed=introBuf.duration+1120+t;$('phase').textContent='環境音だけの時間';$('num').textContent='☾';$('sub').textContent='そのまま、静かな風を感じてください。';if(t>=600){finish();info('全行程が終わりました。');return}}
-total=introBuf.duration+1720;$('time').textContent=fmt(elapsed)+' / '+fmt(total);$('progress').max=total;$('progress').value=elapsed;volume();raf=requestAnimationFrame(frame)}
+else if(mode==='tail'){elapsed=introBuf.duration+1127.8+t;$('phase').textContent='環境音だけの時間';$('num').textContent='☾';$('sub').textContent='そのまま、静かな風を感じてください。';if(t>=600){finish();info('全行程が終わりました。');return}}
+total=introBuf.duration+1727.8;$('time').textContent=fmt(elapsed)+' / '+fmt(total);$('progress').max=total;$('progress').value=elapsed;volume();raf=requestAnimationFrame(frame)}
 async function load(){try{const res=await fetch('./index.html',{cache:'no-store'});if(!res.ok)throw Error('既存音声ファイルが見つかりません');const src=await res.text();
 const mm=src.match(/const AUDIO_B64='([^']+)'/),am=src.match(/const AUTO_B64="([^"]+)"/),ds=src.match(/const SEGMENTS=(\[[^;]+\]);/),as=src.match(/const AUTO_SEGMENTS=(\[[^;]+\]);/),im=src.match(/<audio id="introAudio"[^>]+src="data:audio\/[^;]+;base64,([^"]+)"/);
 if(!(mm&&am&&ds&&as&&im))throw Error('旧バージョンの音声形式が異なります');
 digitSeg=JSON.parse(ds[1]);autoSeg=JSON.parse(as[1]);if(digitSeg.length!==101||autoSeg.length!==10)throw Error('音声区間の数が正しくありません');
-await initAudio();const fetchSui=async path=>{const res=await fetch('./'+path,{cache:'force-cache'});if(!res.ok)throw Error(path+'を読み込めません');return ctx.decodeAudioData(await res.arrayBuffer())};[digits,auto,introBuf,suiInhale,suiExhale]=await Promise.all([ctx.decodeAudioData(encodedToBytes(mm[1])),ctx.decodeAudioData(encodedToBytes(am[1])),ctx.decodeAudioData(encodedToBytes(im[1])),fetchSui('sui-inhale.mp3'),fetchSui('sui-exhale.mp3')]);
+await initAudio();const fetchSui=async path=>{const res=await fetch('./'+path,{cache:'force-cache'});if(!res.ok)throw Error(path+'を読み込めません');return ctx.decodeAudioData(await res.arrayBuffer())};[digits,auto,introBuf,suiInhale,suiExhale]=await Promise.all([ctx.decodeAudioData(encodedToBytes(mm[1])),ctx.decodeAudioData(encodedToBytes(am[1])),ctx.decodeAudioData(encodedToBytes(im[1])),fetchSui('sui-inhale.mp3'),fetchSui('sui-exhale.mp3')]);suiDigits=await Promise.all([1,2,3,4,5,6].map(i=>fetchSui('sui-digit-'+i+'.mp3')));
 $('start').disabled=false;info('Sui音声を読み込みました。呼吸4秒＋6秒を3回、声で案内します。');}catch(e){info('準備に失敗しました：'+e.message+'。以前のVer.1.1は引き続き利用できます。');$('status').style.display='block'}}
 $('start').onclick=async()=>{if(playing){finish();return}if(!introBuf)return;await initAudio();await ctx.resume();stopSources();playing=true;startPhase('intro');playClip(introBuf);$('start').textContent='■ 停止する';$('stop').disabled=false;info('導入音声のあと、呼吸練習→自然の情景→101カウントへ進みます。');raf=requestAnimationFrame(frame)};
 $('stop').onclick=finish;$('volume').oninput=()=>{$('volumeLabel').textContent=$('volume').value+'%';volume()};load();
