@@ -1,0 +1,33 @@
+name: Install Sui counting samples
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-digits.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Store Sui digits
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/t8uN6a9A1VimCxIrCvyC/ZZk3fFsZAZQeia4aSfJo/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=ViJ4_r1zQ1JhU-rFr9BBBoFCRrI=' -o 'sui-digit-1.mp3'
+          test $(wc -c < sui-digit-1.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/T0tWHmQYo2N22Eya05Ay/iLUUPwn2bwwuE7SBaHNC/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=Al9MmcWeiUeHpfwtYbN19xAE-5s=' -o 'sui-digit-2.mp3'
+          test $(wc -c < sui-digit-2.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/XVFBBSDoHz4mFEq6W8u4/BOaus7X03fPd8wCvMQAm/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=IMKvdvBqgfayWcBomSRD5huFYKI=' -o 'sui-digit-3.mp3'
+          test $(wc -c < sui-digit-3.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/krHF0EBQjFBskSkRInOT/6ClWzkLawAdIwOzvlxWv/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=O5qPy9fXyFbUc3MXpYz2bAmtvrY=' -o 'sui-digit-4.mp3'
+          test $(wc -c < sui-digit-4.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/QngYBzwOfEfYNd4jo0nK/aBFv5le7z8FKGMSABbO9/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=kejo765d7f9fjw24FVEpp9FX7Iw=' -o 'sui-digit-5.mp3'
+          test $(wc -c < sui-digit-5.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/VNjZiMySxzyHeMI4M21l/i1ATgKvFma7iYAL8wiAG/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=ueUYZhHfF6j_KfxkZuce7cvuvXs=' -o 'sui-digit-6.mp3'
+          test $(wc -c < sui-digit-6.mp3) -gt 1000
+      - name: Commit audio samples
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-digit-*.mp3
+          git commit -m 'Add Sui 1 through 6 individual breathing counts' || exit 0
+          git push
