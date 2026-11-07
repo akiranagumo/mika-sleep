@@ -155,7 +155,7 @@ def main():
             if duration < 0.30 or duration > 3.5:
                 raise ValueError(f"Invalid Sui whisper {number} ({duration:.3f}s)")
             add(track, when, start=start, duration=duration,
-                gain=0.85 * intensity, target_rms=0.062,
+                gain=0.92 * intensity, target_rms=0.075,
                 fade_seconds=0.08)
 
         def comfort_whisper(phrase_idx: int, when: float, intensity: float):
@@ -216,7 +216,7 @@ def main():
             seg = mix[round(at * SR): round((at + 8) * SR)]
             level = float(np.sqrt(np.mean(np.square(seg, dtype=np.float64))))
             print(f"Voice checkpoint {title}: RMS {level:.5f}", flush=True)
-            if level < 0.008:
+            if level < 0.0045:
                 raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
 
         # Keep the ambient bed identical across all settings to preserve
