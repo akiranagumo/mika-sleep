@@ -152,7 +152,7 @@ def main():
                 track = new_whisper_audio
             start = float(span["start"])
             duration = float(span["end"]) - start
-            if duration < 0.45 or duration > 3.5:
+            if duration < 0.30 or duration > 3.5:
                 raise ValueError(f"Invalid Sui whisper {number} ({duration:.3f}s)")
             add(track, when, start=start, duration=duration,
                 gain=0.85 * intensity, target_rms=0.062,
