@@ -1,0 +1,23 @@
+name: Install Sui nature induction
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-nature.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch previously recorded Sui nature narration
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/DKLJvQ3lA6ic6YzzPYbM/TonqphktpG4gv1TyFtuz/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=UtOQ4JAeAJlPGIuZorBCgICOmq8=' -o sui-nature.mp3
+          test $(wc -c < sui-nature.mp3) -gt 1000
+      - name: Commit permanent Sui narration
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-nature.mp3
+          git commit -m 'Store Sui nature visualization before countdown' || exit 0
+          git push
