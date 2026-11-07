@@ -1,0 +1,98 @@
+name: Install whispered 100-to-0 Sui track
+on:
+  push:
+    paths:
+      - '.github/workflows/install-whisper-count.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download authentic whispered Sui recording
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/7DabGThc48MfDd6hiZzZ/H3cihNBo2EtgAVBqdm2r/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=OpJcfHW-_6aLh6P0uhNSjbP3aoA=' -o sui-count-whisper.mp3
+          test $(wc -c < sui-count-whisper.mp3) -gt 10000
+      - name: Segment whispers into 101 timed clips
+        run: |
+          python3 -m pip install -q numpy
+          python3 - <<'PY'
+          import json, subprocess, numpy as np
+          from pathlib import Path
+          raw=subprocess.check_output(['ffmpeg','-loglevel','error','-i','sui-count-whisper.mp3','-f','f32le','-ar','16000','-ac','1','pipe:1'])
+          audio=np.frombuffer(raw,dtype='<f4')
+          rate=16000
+          dt=.04
+          w=int(rate*dt)
+          n=len(audio)//w
+          energy=np.sqrt(np.mean(np.square(audio[:n*w].reshape(n,w)),axis=1)+1e-9)
+          floor=float(np.percentile(energy,15))
+          median=float(np.percentile(energy,65))
+          smooth=np.convolve(energy,np.ones(3)/3,'same')
+          quiet=np.clip((smooth-floor)/(max(1e-6,median-floor)),0,3)
+          quiet=np.minimum(quiet**1.2,3)
+          quiet[0]=0
+          quiet[-1]=0
+          chars=['','いち','に','さん','よん','ご','ろく','なな','はち','きゅう']
+          def word(num):
+              if num==100:return 'ひゃく'
+              if num==0:return 'ゼロ'
+              if num<10:return chars[num]
+              ten=num//10
+              return ('じゅう' if ten==1 else chars[ten]+'じゅう')+(chars[num%10] if num%10 else '')
+          words=[word(100-i) for i in range(101)]
+          weights=np.array([.52+.095*len(x) for x in words])
+          T=len(audio)/rate
+          targets=weights*T/np.sum(weights)
+          frames=n+1
+          penalty=np.full(frames,5.,dtype=np.float64)
+          penalty[:n]=quiet*1.7
+          penalty[0]=0
+          penalty[n]=0
+          INF=1e20
+          prev=np.full(frames,INF)
+          prev[0]=0
+          backs=np.full((102,frames),-1,dtype=np.int32)
+          minL=9
+          maxL=66
+          for j in range(1,102):
+              curr=np.full(frames,INF)
+              best=np.full(frames,-1,dtype=np.int32)
+              target=targets[j-1]/dt
+              for L in range(minL,maxL+1):
+                  if L>=frames:break
+                  candidate=prev[:-L]+1.7*((L-target)/max(8,target))**2
+                  update=candidate < curr[L:]
+                  curr[L:][update]=candidate[update]
+                  best[L:][update]=np.arange(frames-L,dtype=np.int32)[update]
+              curr+=penalty if j<101 else 0
+              if j==101:
+                  curr[:n]=INF
+              prev=curr
+              backs[j]=best
+          if not np.isfinite(prev[n]) or prev[n]>=INF/2: raise RuntimeError('Could not determine 101 spoken units')
+          points=[n]
+          i=n
+          for j in range(101,0,-1):
+              i=int(backs[j,i])
+              if i<0:raise RuntimeError('Failed traceback at '+str(j))
+              points.append(i)
+          points=points[::-1]
+          if len(points)!=102 or points[0]!=0 or points[-1]!=n:raise RuntimeError('Invalid whispered segments')
+          segments=[]
+          for j in range(101):
+              start=float(points[j]*dt)
+              end=float(points[j+1]*dt)
+              segments.append({'start':round(start,3),'end':round(end,3)})
+          Path('sui-whisper-segments.json').write_text(json.dumps(segments,separators=(',',':')),encoding='utf8')
+          print('segments',len(segments),'duration',round(T,2),'minmax',round(min(x['end']-x['start'] for x in segments),2),round(max(x['end']-x['start'] for x in segments),2))
+          print('first ten',segments[:10])
+          PY
+      - name: Commit whisper track and timings
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-count-whisper.mp3 sui-whisper-segments.json
+          git commit -m 'Store Sui 100 to zero whispered countdown with 101 timings' || exit 0
+          git push
