@@ -20,7 +20,7 @@ function scheduleBreathing(){const origin=phaseAt;scheduleVoice(suiCues.preface,
 const phraseIndex={96:0,91:1,86:2,76:3,71:4,66:5,56:6,46:7,36:8,26:9};
 const phrases={96:'右手が重たい',91:'左手も重たい',86:'両足が重たい',76:'右手が温かい',71:'左手も温かい',66:'身体が温かい',56:'呼吸は楽で自然',46:'お腹が温かい',36:'額が涼しい',26:'身体の力が抜けていきます'};
 const views=[{text:'今、あなたは美しい自然の中にいます。',at:0},{text:'柔らかな草の上に、ゆったり横たわっています。',at:13},{text:'遠くには、緑に包まれた山々。',at:26},{text:'頬をなでる、とても穏やかな風。',at:39},{text:'日常の忙しさから、少しだけ離れて。',at:52},{text:'考えごとを手放し、静けさを感じてください。',at:65}];
-function startPhase(m){mode=m;phaseAt=ctx.currentTime;currentIndex=-1;currentPhrase=-1;breathCue=-1;if(m==='breath')scheduleBreathing();if(m==='nature'){scheduleVoice(suiNature,phaseAt+4);scheduleVoice(suiCountIntro,phaseAt+73)}}
+function startPhase(m){mode=m;phaseAt=ctx.currentTime;currentIndex=-1;currentPhrase=-1;breathCue=-1;if(m==='breath')scheduleBreathing();if(m==='nature'){scheduleVoice(suiNature,phaseAt+4)}}
 function cue(text){if(!('speechSynthesis' in window))return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=.82;u.pitch=.9;u.volume=.65;const v=window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ja')&&/female|nanami|haruka|ayumi|kyoko|mizuki/i.test(v.name))||window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ja'));if(v)u.voice=v;window.speechSynthesis.speak(u)}catch(e){}}
 
 function finish(){playing=false;cancelAnimationFrame(raf);try{window.speechSynthesis?.cancel()}catch(e){}stopSources();if(ctx)noiseGain.gain.setTargetAtTime(0,ctx.currentTime,.3);$('start').disabled=false;$('start').textContent='▶ 睡眠導入をはじめる';$('stop').disabled=true;mode='ready';info('停止しました。いつでもまた始められます。')}
