@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1a1225"><title>AKIRA SLEEPLESS 恋人添い寝 Ver.0.2</title><meta name="description" content="男性向け、恋人との夜の会話から眠りへ。Suiの音声付き恋人添い寝試作。">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 48% 9%,#4a273e 0%,#21182b 45%,#100f1b 100%);color:#fff0ec;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;padding:22px 14px 45px}
+main{max-width:550px;margin:auto;border:1px solid #a2738755;border-radius:26px;padding:30px 22px;background:linear-gradient(#2a1f32ee,#171421ef);box-shadow:0 24px 65px #0007}
+.brand{text-align:center;letter-spacing:2px;font-size:13px;color:#f2c8cf}.ver{color:#d1abbc;font-size:11px;letter-spacing:.02em;margin-left:8px}
+.moon{height:115px;width:115px;border-radius:50%;margin:29px auto 19px;background:radial-gradient(circle at 40% 32%,#fff2dc,#ecc3c1 38%,#ae7896 75%,#6a4167);box-shadow:0 0 45px #d388a750,0 0 90px #b8668430}
+h1{text-align:center;font-size:23px;font-weight:400;margin:0 0 8px}
+.lead{text-align:center;line-height:1.85;color:#d9bdca;font-size:13px;margin:0 0 21px}
+.talk{min-height:111px;border-block:1px solid #a57d9660;padding:24px 5px;text-align:center;color:#f9d5d2;font-size:17px;line-height:1.85;display:flex;justify-content:center;align-items:center}
+button{width:100%;border:0;cursor:pointer;background:linear-gradient(110deg,#f4d9ce,#dbaac1);color:#291627;border-radius:28px;padding:16px;margin:23px 0 5px;font-weight:700;font-size:16px}button:disabled{opacity:.55}
+.row{display:flex;justify-content:space-between;color:#dbc2d0;font-size:12px;margin-bottom:7px}.control{margin-top:19px}input[type=range]{width:100%;accent-color:#e7b5c8;cursor:pointer}
+#msg{text-align:center;color:#cbb5c4;font-size:12px;line-height:1.6;margin:22px 0 13px;min-height:36px}
+.desc{font-size:12px;color:#bfa8b9;line-height:1.85;text-align:center;margin-top:19px}.link{display:block;text-align:center;margin-top:22px;color:#e8bfd0;font-size:12px;text-decoration:none}.link:hover{text-decoration:underline}
+details{border-top:1px solid #a57d9650;margin-top:24px;padding-top:16px;color:#dbc4d3;font-size:13px;line-height:1.8}summary{cursor:pointer;color:#f3d9dc}ol{padding-left:22px}
+</style></head><body><main>
+<div class="brand">☾ AKIRA SLEEPLESS <span class="ver">恋人添い寝 Ver.0.2</span></div>
+<div class="moon" aria-hidden="true"></div><h1>今夜は……帰さないよ。</h1>
+<p class="lead">男性向け・恋人の甘い会話とささやき<br>照れた笑いから、静かな添い寝へ。</p>
+<div class="talk" id="words">「……ねえ。まだ起きてる？」</div>
+<button id="play" disabled>音声を準備しています…</button>
+<div class="control"><div class="row"><span>再生位置</span><span id="time">00:00 / --:--</span></div><input type="range" id="seek" min="0" max="1100" value="0" step="1" aria-label="再生位置"></div>
+<div class="control"><div class="row"><span>夜風の環境音</span><span id="windLabel">6%</span></div><input type="range" id="wind" min="0" max="100" value="6" aria-label="夜風の音量"></div>
+<div id="msg" role="status">Suiの恋人音声を読み込んでいます…</div>
+<p class="desc">女性の声だけを再生します。男性の返事を待つ短い間を挟む、会話風の試作です。<br>会話が終わったあとも、静かな夜風が続きます。</p>
+<details><summary>iPhoneのホーム画面に追加する方法</summary><ol><li>Safariでこのページを開きます。</li><li>共有ボタン（四角から上矢印）を押します。</li><li>「ホーム画面に追加」を選び、「追加」を押します。</li></ol></details>
+<a class="link" href="./v12.html">通常の AKIRA SLEEP に戻る</a>
+</main>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const scenes=[
+{file:'girlfriend-v02-01.mp3',at:3,text:'「えーっ、そんなの恥ずかしいよー！」'},
+{file:'girlfriend-closer.mp3',at:55,text:'「……ねえ。もう少し近くに来て？」'},
+{file:'girlfriend-v02-02.mp3',at:106,text:'「手……つないでもいい？」'},
+{file:'girlfriend-tease.mp3',at:155,text:'「……今、ちょっとドキドキした？」'},
+{file:'girlfriend-v02-05.mp3',at:207,text:'「今夜くらい、甘えていいんだよ」'},
+{file:'girlfriend-v02-06.mp3',at:261,text:'「……ねえ、頭、なでて？」'},
+{file:'girlfriend-sleep.mp3',at:316,text:'「……もう、何もしなくていいよ」'}
+];
+let ctx=null,voiceGain=null,windGain=null,sourceNoise=null,buffers=[],sources=[],playing=false,at=0,position=0,total=1000,raf=0,dragging=false;
+const fmt=t=>{t=Math.max(0,Math.floor(t));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+async function setup(){
+if(ctx)return;
+ctx=new(window.AudioContext||window.webkitAudioContext)();
+voiceGain=ctx.createGain();voiceGain.gain.value=.88;voiceGain.connect(ctx.destination);
+windGain=ctx.createGain();windGain.gain.value=0;windGain.connect(ctx.destination);
+const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),d=b.getChannelData(0);
+let x=0;for(let i=0;i<d.length;i++){x=.985*x+.015*(Math.random()*2-1);d[i]=x*3.7}
+sourceNoise=ctx.createBufferSource();sourceNoise.buffer=b;sourceNoise.loop=true;
+const low=ctx.createBiquadFilter();low.type='lowpass';low.frequency.value=700;sourceNoise.connect(low);low.connect(windGain);sourceNoise.start();
+}
+function stopSources(){for(const s of sources){try{s.stop()}catch(e){}}sources=[]}
+function ambience(t){if(!ctx)return;const fade=Math.min(1,Math.max(0,(total-t)/120));windGain.gain.setTargetAtTime(playing?Number($('wind').value)/100*.45*fade:0,ctx.currentTime,.3)}
+function schedule(t){
+stopSources();
+for(let i=0;i<scenes.length;i++){
+const scene=scenes[i],buffer=buffers[i],end=scene.at+buffer.duration;
+if(t>=end)continue;
+const offset=Math.max(0,t-scene.at),length=buffer.duration-offset,when=ctx.currentTime+.08+Math.max(0,scene.at-t);
+if(length<=.01)continue;
+const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=buffer;src.connect(gain);gain.connect(voiceGain);
+const volume=.95*Math.pow(.58,i/(scenes.length-1));
+gain.gain.setValueAtTime(0,when);gain.gain.linearRampToValueAtTime(volume,when+Math.min(.3,length/4));
+gain.gain.setValueAtTime(volume,when+Math.max(.32,length-.6));gain.gain.linearRampToValueAtTime(0,when+length);
+src.start(when,offset,length);sources.push(src);
+}
+}
+function caption(t){
+let idx=0;for(let i=0;i<scenes.length;i++)if(t>=scenes[i].at)idx=i;
+return t>scenes[scenes.length-1].at+buffers[buffers.length-1].duration?'「……おやすみ。いい夢、見てね」':scenes[idx].text;
+}
+function draw(t){
+if(!dragging){$('seek').value=String(Math.floor(t));$('time').textContent=fmt(t)+' / '+fmt(total)}
+$('words').textContent=caption(t)
+}
+function frame(){
+if(!playing)return;
+position=Math.min(total,ctx.currentTime-at);
+draw(position);ambience(position);
+if(position>=total){stop();$('msg').textContent='試作の再生が終了しました。';return}
+raf=requestAnimationFrame(frame);
+}
+function seek(t){
+position=Math.min(Math.max(0,t),total);
+if(playing){at=ctx.currentTime-position;schedule(position);ambience(position)}
+draw(position);
+}
+function stop(){
+playing=false;cancelAnimationFrame(raf);stopSources();if(ctx)windGain.gain.setTargetAtTime(0,ctx.currentTime,.25);
+position=0;draw(0);$('play').textContent='▶ もう一度はじめる';
+}
+async function load(){
+try{
+await setup();
+buffers=await Promise.all(scenes.map(async s=>{const r=await fetch('./'+s.file,{cache:'force-cache'});if(!r.ok)throw Error(s.file+'が見つかりません');return ctx.decodeAudioData(await r.arrayBuffer())}));
+const last=scenes[scenes.length-1];total=Math.ceil(last.at+buffers[buffers.length-1].duration+600);
+$('seek').max=String(total);draw(0);$('play').disabled=false;$('play').textContent='▶ 恋人の会話をはじめる';$('msg').textContent='音声の準備ができました。小さな音量から試してね。';
+}catch(e){$('msg').textContent='音声の準備に失敗しました：'+e.message;$('play').textContent='読み込みに失敗しました'}
+}
+$('play').addEventListener('click',async()=>{
+if(playing){stop();$('msg').textContent='停止しました。';return}
+if(buffers.length!==scenes.length)return;
+await ctx.resume();playing=true;at=ctx.currentTime-position;schedule(position);ambience(position);
+$('play').textContent='■ 停止する';$('msg').textContent='男性の返事は声にせず、自然な間で表現しています。';
+cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+});
+$('seek').addEventListener('input',()=>{dragging=true;$('time').textContent=fmt(Number($('seek').value))+' / '+fmt(total)});
+$('seek').addEventListener('change',()=>{dragging=false;seek(Number($('seek').value))});
+$('wind').addEventListener('input',()=>{$('windLabel').textContent=$('wind').value+'%';ambience(position)});
+load();
+})();
+</script></body></html>
