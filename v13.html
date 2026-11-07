@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.4</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.5</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,14 +34,15 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.4 · SUI WHISPER</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.5 · SUI WHISPER & COMFORT</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
-<p class="tag">Suiの囁き声で、ゆっくり100から0へ。<br>あとは目を閉じて、音に身を任せてね。</p>
+<p class="tag">Suiの囁き声と、短い安心の言葉に包まれて。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
-<button class="button secondary" type="button" id="countTest">♫ 囁きカウントをすぐ確認</button>
+<button class="button secondary" type="button" id="countTest">♫ 囁きと優しい語りをすぐ確認（100から）</button>
+<button class="button secondary" type="button" id="count89Test">♫ 89からの囁きを確認</button>
 <button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
 <div class="wind-row"><label for="wind">風の音（環境音）</label><span class="wind-label" id="windLabel">なし · 0%</span></div>
 <input class="wind-slider" type="range" id="wind" min="0" max="4" step="1" value="0" aria-label="風の音量を5段階で調整">
@@ -49,9 +50,9 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <button class="button secondary" type="button" id="windTest">♫ 選んだ風の音だけを8秒試聴</button>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-whisper-134"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-comfort-whisper-135"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。100から0のカウントはSuiの短い囁き声で統一。数字と数字の間の長い語りをなくし、途中で途切れるフレーズを除去しました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
+<p class="note">約32分の睡眠誘導です。100から0の数字はSuiの囁き声で統一。89以降も新録の囁き声になりました。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -70,6 +71,7 @@ const audio=document.getElementById("audio");
 const play=document.getElementById("play");
 const back10=document.getElementById("back10");
 const countTest=document.getElementById("countTest");
+const count89Test=document.getElementById("count89Test");
 const wind=document.getElementById("wind");
 const windLabel=document.getElementById("windLabel");
 const presetFiles=[
@@ -79,7 +81,7 @@ const presetFiles=[
  ["中","sleep-background-wind-10.mp3"],
  ["強","sleep-background-wind-20.mp3"]
 ];
-const audioTag="v=20261108-whisper-134";
+const audioTag="v=20261108-comfort-whisper-135";
 const presetUrl=i=>"./"+presetFiles[i][1]+"?"+audioTag;
 const windTest=document.getElementById("windTest");
 const windPreview=new Audio();
@@ -199,6 +201,19 @@ countTest.addEventListener("click",async()=>{
     await audio.play();
     status.textContent="Suiの囁きカウントを再生中。100から10秒ずつ、数字の間は静かな時間です。";
   }catch(e){status.textContent="カウント試聴を開始できませんでした。詳細："+(e?.message||e)}
+  update();
+});
+count89Test.addEventListener("click",async()=>{
+  stopWindPreview();
+  voiceSample.pause();
+  try{
+    if(audio.readyState===0)audio.load();
+    audio.currentTime=418.8;
+    await audio.play();
+    status.textContent="89からのSuiの囁きカウントと、短い優しい囁きを確認中。";
+  }catch(e){
+    status.textContent="89からの囁き試聴を開始できませんでした。詳細："+(e?.message||e);
+  }
   update();
 });
 voiceTest.addEventListener("click",async()=>{
