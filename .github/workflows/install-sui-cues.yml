@@ -1,0 +1,29 @@
+name: Install Sui breathing cue phrases
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-cues.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Sui cue voices
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/9NprpI9KaWyk0C0RluEi/LgmGaCOXxSht2xfsGvUV/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=HBgQHjnBp4hbS9AkIWtgwUfjsb8=' -o 'sui-cue-preface.mp3'
+          test $(wc -c < sui-cue-preface.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/9ieWjo4bwDTW0zELfPnT/F0QyEMci5Rii9lhn3sL7/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=Sgis5PUdv2ZqQdhs6vjTVsTfh1k=' -o 'sui-cue-inhale.mp3'
+          test $(wc -c < sui-cue-inhale.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/6nhPBCAKfwRBwoIrDrrl/ERQkrDQDhyoHSG77ehbH/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=5aVB8c-e7SVpDzCn9bK_J776Vt8=' -o 'sui-cue-exhale.mp3'
+          test $(wc -c < sui-cue-exhale.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/rWb04e12TZFByGtJ8sZ3/i1ROvy1tachwHAJIi67R/content.mp3?Expires=1794027600&KeyName=assets-cdn-key-1&Signature=zhtFA2m71O1HV-o7Hb6n0eGdwiU=' -o 'sui-cue-again.mp3'
+          test $(wc -c < sui-cue-again.mp3) -gt 1000
+      - name: Commit durable assets
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-cue-*.mp3
+          git commit -m 'Store slower Sui breathing cues' || exit 0
+          git push
