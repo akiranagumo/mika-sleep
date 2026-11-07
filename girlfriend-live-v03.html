@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
-<title>SLEEPLESS — 会話相手を選ぶ Ver.1.1.0</title>
+<title>SLEEPLESS — 会話相手を選ぶ Ver.1.1.1</title>
 <meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
@@ -163,7 +163,7 @@ main> *{z-index:1}
 .profile{border:1px solid #d9b98b;background:linear-gradient(110deg,#291736dc,#152344cf)}
 @media(max-width:650px){body{padding:0;background:#090c29}main{padding:18px 10px 34px;border-radius:0;outline:none;min-height:100svh;border:0;box-shadow:inset 0 0 25px #e0a15c40}.brand{font-size:21px;letter-spacing:.09em}.ver{font-size:9px}.studio-stage{min-height:292px;border-radius:19px;margin:18px 0 9px;border-width:2px}.stage-half{padding:9px 3px 13px}.portrait{width:min(95%,180px);height:206px;border-radius:32% 32% 12px 12px;border-width:2px}.stage-person{margin-top:6px}.stage-halo{top:32px}.person-label{font-size:20px}.person-sub{font-size:9px}.center-beam{width:48px;height:48px;font-size:22px}.center-beam span{font-size:24px}.stage-stars{font-size:12px;letter-spacing:4px}.live-title{margin-top:13px}.personas{gap:7px}.personas button{min-height:67px;font-size:11px!important;padding:9px 3px}.quick-live button{font-size:15px;min-height:66px}.profile{padding:12px}.start{min-height:64px}.audio-bars{display:none}}
 </style></head><body><main>
-<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.1.0</span></div>
+<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.1.1</span></div>
 <div class="live-title"><span class="live-pill"><i></i> NIGHT LIVE</span><span class="live-right">TWO VOICES · ONE NIGHT</span></div>
 <h1 id="headline">今夜は、誰と話したい？</h1>
 <div class="studio-stage" id="studioStage">
@@ -190,7 +190,7 @@ main> *{z-index:1}
 <form id="form" class="inputrow"><input id="text" autocomplete="off" placeholder="ミカにメッセージを書く…" maxlength="400" aria-label="ミカへのメッセージ"><button id="send" type="submit">送信</button></form>
 <div class="microw"><span>マイク（最初はオフ）</span><button type="button" id="mic">🎙 マイクをオンにする</button></div>
 <div class="sliderline"><span>夜風の環境音</span><span id="windText">6%</span></div><input id="wind" type="range" value="6" min="0" max="100" aria-label="環境音量">
-<p class="note">ミカもOTANIもAIの会話キャラクターです。OTANIは架空の成人男性AIキャラクターです。声はElevenLabsの「Otani」を使用しており、実在の人物の経歴・個人データを引き継ぎません。無料の録音再生ではなく、接続中にリアルタイムで会話を生成します。おまかせモードでは男性の声は不要ですが、試作の音声接続のためブラウザからマイク許可を求められる場合があります。マイクは初期状態でミュートし、許可がなければ接続できない場合があります。会話を終了すると接続とマイクを停止します。会話履歴はこの画面では保存しません。プロフィールと登録した記憶は、このブラウザに保存する試作機能です。ログイン、他端末への同期、暗号化されたクラウド保管、課金はまだありません。記憶の会話利用を許可した場合のみ、登録した記憶を会話サービス（ElevenLabs）に送ります。</p>
+<p class="note">ミカもOTANIもAIの会話キャラクターです。OTANIは架空の成人男性AIキャラクターです。声はElevenLabsの日本語男性ボイス「Kuya - Calm & Trustworthy」、音声モデルはEleven v4 Turboを使用しており、実在の人物の経歴・個人データを引き継ぎません。無料の録音再生ではなく、接続中にリアルタイムで会話を生成します。おまかせモードでは男性の声は不要ですが、試作の音声接続のためブラウザからマイク許可を求められる場合があります。マイクは初期状態でミュートし、許可がなければ接続できない場合があります。会話を終了すると接続とマイクを停止します。会話履歴はこの画面では保存しません。プロフィールと登録した記憶は、このブラウザに保存する試作機能です。ログイン、他端末への同期、暗号化されたクラウド保管、課金はまだありません。記憶の会話利用を許可した場合のみ、登録した記憶を会話サービス（ElevenLabs）に送ります。</p>
 <a class="back" href="./girlfriend-v02.html">録音型のVer.0.2を開く</a><a class="back" href="./v12.html">通常のAKIRA SLEEPに戻る</a>
 </main>
 <script type="module">
