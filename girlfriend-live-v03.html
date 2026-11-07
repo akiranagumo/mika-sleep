@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
+<title>AKIRA SLEEPLESS — AI恋人ミカ Ver.0.3</title>
+<meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
+main{max-width:540px;margin:auto;background:linear-gradient(#2e2036f2,#191420f5);border:1px solid #b47d9759;border-radius:26px;padding:28px 19px;box-shadow:0 24px 90px #0006}
+.brand{text-align:center;font-size:13px;color:#f1d0da;letter-spacing:2px}.ver{font-size:11px;color:#c9aab9;letter-spacing:0;margin-left:5px}
+.orb{width:112px;height:112px;border-radius:50%;margin:25px auto 18px;background:radial-gradient(circle at 35% 28%,#fff6e0,#f0c5c0 35%,#b4769d 73%,#72446c);box-shadow:0 0 55px #df8caa52}
+h1{text-align:center;font-weight:400;font-size:22px;margin:0 0 10px}.tagline{text-align:center;color:#d6bbcb;font-size:13px;line-height:1.8;margin:0 0 20px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.choice button{font-size:13px;color:#ead6e2;background:#3c2b42;border:1px solid #936a85aa;padding:12px 8px;border-radius:14px}.choice button.active{color:#291624;background:#eed2da;border-color:#eed2da}
+button{cursor:pointer;font-family:inherit}.start{display:block;background:linear-gradient(110deg,#f8e0d3,#e4b4c9);border:0;border-radius:40px;padding:16px 12px;width:100%;font-size:16px;color:#301825;font-weight:700}.start:disabled{opacity:.55;cursor:wait}
+.status{text-align:center;min-height:26px;color:#d4bacb;font-size:12px;margin:14px 0}.dialog{border-block:1px solid #9f748e5c;margin-top:12px;padding:18px 4px;height:190px;overflow:auto;display:flex;flex-direction:column;gap:13px}
+.bubble{max-width:93%;border-radius:13px;padding:12px 13px;line-height:1.75;font-size:14px;background:#5d3d59a0;align-self:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
+.bubble.user{align-self:flex-end;background:#343c5da6}.who{display:block;color:#e9b9c9;font-size:11px;margin-bottom:4px}.bubble.user .who{color:#b7c8f0}
+.inputrow{display:flex;gap:7px;margin:14px 0 8px}.inputrow input{width:100%;min-width:0;border-radius:18px;padding:13px 12px;border:1px solid #856983;background:#261d30;color:#fff;font-size:14px}.inputrow button{border:0;background:#e5bdc8;border-radius:16px;padding:0 17px;font-weight:700;color:#301b2d}.inputrow button:disabled{opacity:.45}
+.microw{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:17px 0;color:#d5bfcd;font-size:13px}.microw button{border:1px solid #967488;background:#34233b;color:#f7e1ec;border-radius:14px;padding:9px 12px}
+.sliderline{display:flex;justify-content:space-between;font-size:12px;color:#ddc5d4;margin-top:18px}input[type=range]{width:100%;accent-color:#e7bbcc}
+.note{font-size:11px;line-height:1.85;color:#c3aabd;margin-top:17px}.back{display:block;text-align:center;color:#e5becf;font-size:12px;margin-top:24px;text-decoration:none}.back:hover{text-decoration:underline}
+</style></head><body><main>
+<div class="brand">☾ AKIRA SLEEPLESS <span class="ver">AI恋人 Ver.0.3</span></div><div class="orb" aria-hidden="true"></div><h1>ミカと、ふたりだけの夜。</h1>
+<p class="tagline">AIが毎回、違う言葉を考えて話しかける。<br>返事をしなくてもいいよ。</p>
+<div class="choice" aria-label="会話のモード"><button type="button" data-mode="auto" class="active">♡ おまかせ添い寝</button><button type="button" data-mode="chat">✎ 会話する</button></div>
+<button id="start" class="start" type="button">▶ ミカとの夜をはじめる</button>
+<div id="status" class="status" role="status">待機中（1回の会話は最大10分）</div>
+<div class="dialog" id="log" aria-label="会話の記録" aria-live="polite"><div class="bubble"><span class="who">ミカ</span>……ねえ。今夜は私から話してもいい？</div></div>
+<form id="form" class="inputrow"><input id="text" autocomplete="off" placeholder="ミカにメッセージを書く…" maxlength="400" aria-label="ミカへのメッセージ"><button id="send" type="submit">送信</button></form>
+<div class="microw"><span>マイク（最初はオフ）</span><button type="button" id="mic">🎙 マイクをオンにする</button></div>
+<div class="sliderline"><span>夜風の環境音</span><span id="windText">6%</span></div><input id="wind" type="range" value="6" min="0" max="100" aria-label="環境音量">
+<p class="note">AIの架空の恋人です。無料の録音再生ではなく、接続中にリアルタイムで会話を生成します。おまかせモードでは男性の声は不要ですが、試作の音声接続のためブラウザからマイク許可を求められる場合があります。マイクは初期状態でミュートし、許可がなければ接続できない場合があります。会話を終了すると接続とマイクを停止します。会話履歴はこの画面では保存しません。</p>
+<a class="back" href="./girlfriend-v02.html">録音型のVer.0.2を開く</a><a class="back" href="./v12.html">通常のAKIRA SLEEPに戻る</a>
+</main>
+<script type="module">
+import {Conversation} from "https://esm.sh/@elevenlabs/client@1.35.0";
+const AGENT_ID="agent_2401m6tafhbpf8htxyp6yr81xz65";
+const $=id=>document.getElementById(id);
+let session=null,starting=false,mode="auto",micOn=false,voiceMode="listening",lastAnswerAt=0,lastUserAt=0,autoTimer=null,limitTimer=null,noiseCtx=null,noiseGain=null,noiseSource=null,active=false;
+const status=s=>$("status").textContent=s;
+function bubble(who,message){if(!message||!String(message).trim())return;const log=$("log"),e=document.createElement("div"),label=document.createElement("span");e.className="bubble"+(who==="あなた"?" user":"");label.className="who";label.textContent=who;e.append(label,document.createTextNode(String(message)));log.append(e);while(log.children.length>16)log.firstElementChild.remove();log.scrollTop=log.scrollHeight}
+function clearTimers(){if(autoTimer)clearTimeout(autoTimer);if(limitTimer)clearTimeout(limitTimer);autoTimer=null;limitTimer=null}
+function scheduleAuto(){if(!active||!session||mode!=="auto")return;if(autoTimer)clearTimeout(autoTimer);
+autoTimer=setTimeout(()=>{autoTimer=null;if(!active||!session||mode!=="auto"||voiceMode==="speaking")return;if(Date.now()-lastAnswerAt<14000||Date.now()-lastUserAt<14000){scheduleAuto();return}
+try{session.sendUserMessage("【アプリからの自動継続通知。ユーザーの発話ではありません】返答は不要です。先ほどの話からつながる、あなた自身の新しい小さなお話を自然に1〜3文だけ話してください。男性が発言したふりはしないでください。") ;lastUserAt=Date.now()}catch(e){status("自動会話の継続に失敗しました。")}
+scheduleAuto()},18000)}
+async function windSetup(){if(noiseCtx)return;noiseCtx=new(window.AudioContext||window.webkitAudioContext)();noiseGain=noiseCtx.createGain();noiseGain.gain.value=0;noiseGain.connect(noiseCtx.destination);const b=noiseCtx.createBuffer(1,noiseCtx.sampleRate*3,noiseCtx.sampleRate),v=b.getChannelData(0);let x=0;for(let i=0;i<v.length;i++){x=.985*x+.015*(Math.random()*2-1);v[i]=x*3.5}noiseSource=noiseCtx.createBufferSource();noiseSource.buffer=b;noiseSource.loop=true;const filter=noiseCtx.createBiquadFilter();filter.type="lowpass";filter.frequency.value=720;noiseSource.connect(filter);filter.connect(noiseGain);noiseSource.start()}
+function windVolume(){if(!noiseGain)return;noiseGain.gain.setTargetAtTime(active?Number($("wind").value)/100*.33:0,noiseCtx.currentTime,.45)}
+function uiStopped(text){active=false;starting=false;clearTimers();micOn=false;$("mic").textContent="🎙 マイクをオンにする";$("start").disabled=false;$("start").textContent="▶ ミカとの夜をはじめる";windVolume();if(text)status(text)}
+async function finish(){if(!active&&!session&&!starting)return;active=false;clearTimers();const prev=session;session=null;uiStopped("終了しました。また今夜、話そうね。");if(prev){try{await prev.endSession()}catch(e){console.warn(e)}}}
+async function begin(){if(active||starting){await finish();return}
+starting=true;$("start").disabled=true;status("ミカにつないでいます…");
+try{await windSetup();await noiseCtx.resume();
+const conv=await Conversation.startSession({agentId:AGENT_ID,connectionType:"websocket",
+onConnect:()=>{status("ミカとつながりました。あなたは無言のままでいいよ。")},
+onDisconnect:()=>{if(session){session=null;uiStopped("接続が終了しました。")}},
+onError:e=>{status("音声接続エラー：" +(typeof e==="string"?e:e?.message||"接続を確認してください"))},
+onModeChange:m=>{voiceMode=m.mode||"listening";if(active)status(voiceMode==="speaking"?"ミカがお話ししています…":mode==="auto"?"ミカは次のお話を考えています…":"あなたのお話を待っています…")},
+onMessage:m=>{const v=m.message;if(!v)return;if(m.source==="ai"||m.source==="agent"){lastAnswerAt=Date.now();bubble("ミカ",v);scheduleAuto()}else if(m.source==="user"){lastUserAt=Date.now();if(!String(v).startsWith("【アプリからの自動継続通知"))bubble("あなた",v)}}});
+session=conv;active=true;starting=false;micOn=false;if(typeof session.setMicMuted==="function")session.setMicMuted(true);
+$("start").disabled=false;$("start").textContent="■ 会話を終了する";windVolume();lastAnswerAt=Date.now();lastUserAt=0;scheduleAuto();limitTimer=setTimeout(()=>finish(),9*60*1000);
+}catch(e){session=null;uiStopped("接続できませんでした："+(e?.message||String(e))+". 必要ならSafariのマイク許可を確認してね。")}}
+$("start").addEventListener("click",begin);
+$("form").addEventListener("submit",e=>{e.preventDefault();const text=$("text").value.trim();if(!text)return;if(!session){status("先に「ミカとの夜をはじめる」を押してください。");return}try{session.sendUserMessage(text);lastUserAt=Date.now();bubble("あなた",text);$("text").value=""}catch(err){status("メッセージを送れませんでした。")}});
+$("text").addEventListener("input",()=>{try{session?.sendUserActivity?.()}catch(e){}});
+$("mic").addEventListener("click",()=>{if(!session){status("先に会話を開始してください。");return}try{micOn=!micOn;session.setMicMuted(!micOn);$("mic").textContent=micOn?"🎙 マイクをオフにする":"🎙 マイクをオンにする";status(micOn?"マイクをオンにしました。話しかけてね。":"マイクをオフにしました。")}catch(e){micOn=false;status("マイクを切り替えられませんでした。")}});
+document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x.dataset.mode===mode));if(mode==="auto"){scheduleAuto();status("おまかせ添い寝。返事をしなくてもミカから話しかけるよ。")}else{if(autoTimer)clearTimeout(autoTimer);autoTimer=null;status("会話モード。文字か声で話しかけてね。")}}));
+$("wind").addEventListener("input",()=>{$("windText").textContent=$("wind").value+"%";windVolume()});
+window.addEventListener("pagehide",()=>{active=false;clearTimers();if(session){try{session.endSession()}catch(e){}}});
+</script></body></html>
