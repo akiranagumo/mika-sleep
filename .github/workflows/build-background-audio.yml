@@ -23,7 +23,9 @@ jobs:
           python -m pip install --disable-pip-version-check 'numpy>=1.26,<3'
           ffmpeg -version | head -n 1
       - name: Render full 32-minute background playback file
-        run: python scripts/build_background_audio.py
+        run: |
+          set -o pipefail
+          python scripts/build_background_audio.py 2>&1 | tee build-background-debug.txt
       - name: Validate MP3 has expected length and non-silent speech
         run: |
           test -s sleep-background-full.mp3
@@ -42,3 +44,15 @@ jobs:
           git commit -m 'Publish continuous Sui sleep audio for iOS background playback' || exit 0
           git pull --rebase
           git push
+
+      - name: Publish diagnostic log if render failed
+        if: failure()
+        run: |
+          if test -f build-background-debug.txt; then
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git config user.name 'github-actions[bot]'
+            git add -f build-background-debug.txt
+            git commit -m 'Record background audio renderer failure diagnostics' || exit 0
+            git pull --rebase
+            git push
+          fi
