@@ -1,0 +1,10 @@
+Length: 1918.8s, 61432320 samples
+Voice checkpoint intro: RMS 0.11085
+Voice checkpoint count_start: RMS 0.01534
+Voice checkpoint count_middle: RMS 0.02148
+Voice checkpoint count_late: RMS 0.01417
+Created sleep-background-full.mp3: 18.3 MiB, wind mix=0.000, wind_rms=0.00000
+Created sleep-background-wind-02.mp3: 18.3 MiB, wind mix=0.040, wind_rms=0.00336
+Created sleep-background-wind-05.mp3: 18.3 MiB, wind mix=0.080, wind_rms=0.00671
+Created sleep-background-wind-10.mp3: 18.3 MiB, wind mix=0.140, wind_rms=0.01175
+Created sleep-background-wind-20.mp3: 18.3 MiB, wind mix=0.220, wind_rms=0.01846
