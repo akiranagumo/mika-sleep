@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
-<title>SLEEPLESS — 会話相手を選ぶ Ver.0.6.1</title>
+<title>SLEEPLESS — 会話相手を選ぶ Ver.0.7.0</title>
 <meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
@@ -39,8 +39,66 @@ input[type=range],.memorytoggle input{accent-color:var(--active-rim)}
 .bubble:not(.user){background:#68445e91}
 :root[data-persona=akira] .bubble:not(.user){background:#344c778e}
 @media(max-width:400px){.personas button{font-size:13px;padding:13px 5px}.choice button{font-size:12px;padding:12px 4px}main{padding:23px 16px}}
+
+/* SLEEPLESS Aurora redesign 0.7.0 — luminous pink-to-blue night */
+html{min-height:100%;background:#10152a}
+body{min-height:100vh;background:radial-gradient(ellipse at 9% 20%,#df6aab55 0%,transparent 43%),radial-gradient(ellipse at 92% 30%,#4c92f05c 0%,transparent 45%),linear-gradient(90deg,#41233f 0%,#302743 49.5%,#182d54 100%);background-attachment:fixed;padding:32px 18px 72px}
+main{max-width:830px;border-radius:34px;padding:43px clamp(22px,5vw,52px) 36px;background:linear-gradient(102deg,#532c4ad9 0%,#3b2848eb 47%,#1d3a65e6 100%);border:1px solid #d1b1d67d;box-shadow:-28px 20px 95px #ae52714a,32px 22px 105px #1c5ab355,0 35px 90px #0b0a23b0;isolation:isolate}
+main::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 8% 8%,#ffffffab 0 1px,transparent 2px),radial-gradient(circle at 91% 12%,#ffffffd9 0 1px,transparent 2px),radial-gradient(circle at 72% 21%,#ffffffb5 0 1px,transparent 2px),radial-gradient(circle at 14% 35%,#ffbed2ad 0 1px,transparent 2px),radial-gradient(circle at 92% 41%,#ffffffac 0 1px,transparent 2px),radial-gradient(circle at 79% 66%,#ffffffa6 0 1px,transparent 2px),radial-gradient(circle at 4% 73%,#ffdbefaa 0 1px,transparent 2px),radial-gradient(circle at 87% 91%,#ffffffbf 0 1px,transparent 2px),radial-gradient(ellipse at 0% 18%,#fd9bce1f,transparent 49%),radial-gradient(ellipse at 100% 74%,#68a8ef21,transparent 53%);background-size:100% 100%;opacity:.95}
+main > *{z-index:1}
+.brand{font-size:16px;letter-spacing:5px;color:#ffe6f4;text-shadow:0 0 20px #e3a4d28c}
+.ver{letter-spacing:0;font-size:11px;color:#dbc4e7}
+.orb{width:168px;height:168px;margin:34px auto 28px;background:radial-gradient(circle at 29% 22%,#fff7f1 0%,#f8d8db 20%,#edb7d8 43%,#b6c7ed 70%,#79a6ec 100%);box-shadow:-27px 0 63px #ff9ccc83,26px 0 68px #82b8fa87,0 0 110px #f4b6ec59;animation:moonFloat 8s ease-in-out infinite}
+@keyframes moonFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+h1{font-size:clamp(25px,4.5vw,38px);font-weight:400;letter-spacing:.09em;margin-bottom:16px;text-shadow:0 2px 20px #ffdafa44}
+.tagline{font-size:clamp(13px,2vw,16px);color:#f2dded;margin-bottom:27px;line-height:2}
+.personas{gap:16px;margin:28px 0 12px}
+.personas button{font-size:clamp(15px,2.1vw,19px);border-radius:21px;padding:20px 14px;min-height:74px;letter-spacing:.025em;box-shadow:inset 0 1px #ffffff34,0 7px 23px #00000025;transition:transform .18s,box-shadow .2s,background .2s}
+.personas button:hover{transform:translateY(-2px)}
+.personas button[data-persona=mika]{background:linear-gradient(110deg,#d87fa377,#714263ba);border:1px solid #ffbfdf;color:#fff0f6}
+.personas button[data-persona=akira]{background:linear-gradient(110deg,#537fbd86,#244e86b5);border:1px solid #96c4ff;color:#eff7ff}
+.personas button[data-persona=mika].active{background:linear-gradient(115deg,#ffdee9,#ecadd2);color:#563044;border:2px solid #fff4fc;box-shadow:0 0 27px #ffb2dfb8,0 5px 19px #f1a4d745}
+.personas button[data-persona=akira].active{background:linear-gradient(115deg,#d3e8ff,#9bc5ff);color:#20345b;border:2px solid #f0f9ff;box-shadow:0 0 28px #8dbaffac,0 5px 19px #6aa0f64d}
+.personahelp{font-size:14px;color:#f3dce9;letter-spacing:.025em;margin-bottom:22px}
+.choice{gap:0;overflow:hidden;border-radius:18px;border:1px solid #e7c9eb96;background:linear-gradient(95deg,#f59bc92a,#75b1fb24);margin:22px 0 24px}
+.choice button{border:0;border-right:1px solid #d4b6dc54;border-radius:0;padding:18px 8px;color:#fff0f8;background:transparent;font-size:clamp(12px,1.6vw,15px);min-height:62px}
+.choice button:last-child{border-right:0}
+.choice button.active{background:linear-gradient(120deg,#ffe3ef,#edc6e3);border:0;box-shadow:0 0 22px #f5c5e97a;position:relative}
+:root[data-persona=akira] .choice button.active{background:linear-gradient(115deg,#d5e6ff,#a9c8fd);box-shadow:0 0 20px #85b2f765}
+.profile{border-radius:18px;background:linear-gradient(110deg,#381d37a8,#1f3353b3);border-color:#dabbd17a;margin:14px 0;padding:15px 18px;box-shadow:inset 0 1px #ffffff1a}
+.profile summary{font-size:14px;color:#ffebf6;padding:4px 0}
+.start{margin-top:23px;padding:20px 12px;min-height:74px;border:2px solid #ffeefa;border-radius:50px;font-size:clamp(16px,2.5vw,21px);background:linear-gradient(100deg,#f7b8d3 0%,#edc9e5 48%,#9ecbff 100%);color:#34213c;box-shadow:0 0 33px #f5b7d6a6,0 10px 24px #0e112f7d, inset 0 1px 9px #fff9}
+:root[data-persona=mika] .start{background:linear-gradient(105deg,#ffe3e8,#eea9ce);box-shadow:0 0 30px #f9b2d9a6,0 10px 24px #0e112f7d}
+:root[data-persona=akira] .start{background:linear-gradient(105deg,#d6edff,#83b6f6);box-shadow:0 0 30px #91bffe99,0 10px 24px #0e112f7d}
+.status{font-size:13px;color:#f3ddea;margin:21px 0}
+.dialog{border-color:#dcb4d175;height:230px;padding:22px 6px;gap:15px}
+.bubble{border-radius:19px;padding:14px 18px;font-size:15px;max-width:82%;background:#e99fcb33!important;border:1px solid #f4bfd047;box-shadow:0 5px 20px #0e112a45}
+:root[data-persona=akira] .bubble:not(.user){background:#7ca9eb33!important;border-color:#abcafa69}
+.bubble.user{background:#7e91c03a!important;align-self:flex-end}
+.who{font-size:12px;color:#ffcfeb}
+:root[data-persona=akira] .who{color:#c4e3ff}
+.inputrow input,.profilegrid input,.profilegrid textarea,.profilegrid select,.memoryinput{background:#1d1b36bb;border-color:#b99aba8c}
+.inputrow button{background:var(--active-pale);color:#27233b}
+.microw button,.profileactions button{background:#2e2c4bb5;border-color:#bb9db7}
+a.back{color:#f7d7f0}
+@media(max-width:600px){
+body{padding:0 0 26px}
+main{border-radius:0;min-height:100vh;max-width:none;padding:26px 18px 38px;border-left:0;border-right:0;box-shadow:inset 0 1px #ffffff24}
+.brand{font-size:13px;letter-spacing:3px}
+.orb{width:126px;height:126px;margin:26px auto 21px}
+h1{font-size:25px;letter-spacing:.055em}
+.tagline{font-size:13px;margin-bottom:18px}
+.personas{gap:9px;margin:22px 0 10px}
+.personas button{min-height:60px;padding:13px 6px;font-size:14px;border-radius:15px}
+.choice{margin:18px 0}
+.choice button{font-size:12px;min-height:53px;padding:12px 4px}
+.profile summary{font-size:12px}
+.start{min-height:62px;padding:15px 8px;font-size:16px}
+.dialog{height:195px}
+}
+@media(prefers-reduced-motion:reduce){.orb{animation:none}.personas button{transition:none}}
 </style></head><body><main>
-<div class="brand">☾ SLEEPLESS <span class="ver">Ver.0.6.1</span></div><div class="orb" aria-hidden="true"></div><h1 id="headline">今夜は、誰と話したい？</h1>
+<div class="brand">☾ SLEEPLESS <span class="ver">Ver.0.7.0</span></div><div class="orb" aria-hidden="true"></div><h1 id="headline">今夜は、誰と話したい？</h1>
 <p class="tagline">気分に合わせて、話し相手を選んでね。<br>返事をしなくても大丈夫。</p>
 <div class="personas" aria-label="誰と話したい？"><button type="button" data-persona="mika" class="active" aria-pressed="true">♡ ミカと話す</button><button type="button" data-persona="akira" aria-pressed="false">♫ AKIRAと話す</button></div><div id="personaHelp" class="personahelp">ミカと過ごす、ふたりだけの特別な夜。</div>
 <div class="choice" aria-label="会話のモード"><button type="button" data-mode="auto" class="active">♡ おまかせ添い寝</button><button type="button" data-mode="chat">✎ 会話する</button><button type="button" data-mode="advice">☾ 相談する</button></div>
