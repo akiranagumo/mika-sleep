@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AKIRA SLEEP 恋人添い寝 Ver.0.1</title>
+<meta name="theme-color" content="#170f25"><meta name="description" content="AKIRA SLEEPの男性向け恋人添い寝試作。耳元のささやきから、静かな眠りへ。">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 15%,#41243d 0,#21182e 40%,#100e19 100%);color:#fff0e5;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:22px 14px}
+main{max-width:540px;margin:0 auto;border:1px solid #86637460;background:linear-gradient(180deg,#251d30e8,#17121fe8);border-radius:26px;padding:32px 22px 26px;box-shadow:0 22px 80px #0006}.brand{text-align:center;letter-spacing:.13em;font-size:12px;color:#e1bfce}.brand b{font-weight:500;color:#fff1e0}.version{font-size:11px;color:#bea3bc}.orb{margin:34px auto 22px;width:118px;height:118px;border-radius:50%;background:radial-gradient(circle at 37% 33%,#fff5d1,#e9bdba 33%,#ac789c 67%,#70486e);box-shadow:0 0 40px #d78ea454,0 0 100px #ba729322;position:relative}.orb:after{content:"";position:absolute;inset:17px;border:1px solid #fff8;border-radius:50%;filter:blur(4px)}
+h1{text-align:center;font-size:24px;font-weight:500;letter-spacing:.09em;margin:0 0 12px}.subtitle{text-align:center;color:#d7bccb;font-size:13px;line-height:1.9;margin:0 0 22px}.whisper{border-top:1px solid #6e586b55;border-bottom:1px solid #6e586b55;padding:24px 4px;min-height:94px;text-align:center;color:#ffe0d9;font-size:17px;line-height:2;font-weight:400}
+button{display:block;width:100%;border:0;background:linear-gradient(110deg,#efd1c6,#d8adbf);border-radius:28px;padding:16px;margin-top:23px;color:#271727;font-size:16px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.panel{margin-top:24px}.line{display:flex;justify-content:space-between;gap:8px;color:#d9c4d3;font-size:12px;margin-bottom:7px}input[type=range]{width:100%;accent-color:#e5b4c1;cursor:pointer}.setting{margin-top:21px}#message{color:#b9a6b9;text-align:center;font-size:12px;line-height:1.7;min-height:28px;margin:22px 0 0}.hint{font-size:12px;line-height:1.8;color:#b6a3b5;text-align:center;margin-top:20px}.back{display:block;text-align:center;font-size:12px;color:#d9b9c6;margin-top:22px;text-decoration:none}.back:hover{text-decoration:underline}
+@media(prefers-reduced-motion:reduce){.orb{box-shadow:0 0 18px #d78ea454}}
+</style></head>
+<body><main>
+<div class="brand"><b>☾ AKIRA SLEEP</b>　<span class="version">恋人添い寝 Ver.0.1</span></div>
+<div class="orb" aria-hidden="true"></div><h1>今夜は、そばにいるね。</h1>
+<p class="subtitle">男性向け・大胆で甘い恋人のささやき<br>どきどきする夜から、やさしい眠りへ。</p>
+<div class="whisper" id="caption" aria-live="off">「……ねえ。まだ起きてる？」</div>
+<button id="start" disabled>音声を準備しています…</button>
+<div class="panel"><div class="line"><span>再生位置</span><span id="position">00:00 / --:--</span></div><input id="seek" type="range" min="0" max="720" step="1" value="0" aria-label="再生位置"></div>
+<div class="setting"><div class="line"><span>夜風の環境音</span><span id="volumeText">6%</span></div><input id="volume" type="range" min="0" max="100" value="6" aria-label="夜風の音量"></div>
+<p id="message">Suiの音声を読み込んでいます。</p>
+<p class="hint">約2分の恋人の語りのあと、静かな夜風が約10分続きます。<br>イヤホンでも、スピーカーでも。音量は小さめから。</p>
+<a class="back" href="./v12.html">通常のAKIRA SLEEPへ戻る</a>
+</main>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const files=['girlfriend-closer.mp3','girlfriend-tease.mp3','girlfriend-sleep.mp3'];
+const starts=[3,47,90];
+const captions=['「……ねえ。まだ起きてる？」','「今……ちょっと、どきどきした？」','「もう……何もしなくていいよ」'];
+let ctx=null,voiceBus=null,noiseGain=null,noiseSource=null,buffers=[],sources=[],playing=false,started=0,pos=0,raf=0,total=722;
+const fmt=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+function sceneAt(t){if(t<47)return 0;if(t<90)return 1;return 2}
+function update(t){$('seek').value=String(Math.round(t));$('position').textContent=fmt(t)+' / '+fmt(total);$('caption').textContent=t>=90+buffers[2].duration?'「……おやすみ。いい夢、見てね。」':captions[sceneAt(t)]}
+async function setup(){
+if(ctx)return;
+ctx=new(window.AudioContext||window.webkitAudioContext)();
+voiceBus=ctx.createGain();voiceBus.gain.value=.9;voiceBus.connect(ctx.destination);
+noiseGain=ctx.createGain();noiseGain.gain.value=0;noiseGain.connect(ctx.destination);
+const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),v=b.getChannelData(0);
+let x=0;for(let i=0;i<v.length;i++){x=.986*x+.014*(Math.random()*2-1);v[i]=x*3.8}
+const src=ctx.createBufferSource();src.buffer=b;src.loop=true;const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=720;src.connect(filter);filter.connect(noiseGain);src.start();noiseSource=src;
+}
+async function load(){
+try{
+await setup();
+buffers=await Promise.all(files.map(async file=>{const res=await fetch('./'+file,{cache:'force-cache'});if(!res.ok)throw Error(file+'を読み込めません');return await ctx.decodeAudioData(await res.arrayBuffer())}));
+total=Math.ceil(starts[2]+buffers[2].duration+600);$('seek').max=String(total);update(0);$('start').disabled=false;$('start').textContent='▶ 恋人のささやきをはじめる';$('message').textContent='準備できました。目を閉じて、ゆっくり聴いてね。';
+}catch(e){$('message').textContent='音声の準備ができませんでした：'+e.message;$('start').textContent='読み込みに失敗しました';}
+}
+function stopVoices(){for(const s of sources){try{s.stop()}catch(e){}}sources=[]}
+function stop(){playing=false;cancelAnimationFrame(raf);if(ctx)noiseGain.gain.setTargetAtTime(0,ctx.currentTime,.15);stopVoices();$('start').textContent='▶ もう一度はじめる';$('message').textContent='停止しました。';pos=0;update(0)}
+function schedule(t){
+stopVoices();
+const now=ctx.currentTime+.07;
+for(let i=0;i<3;i++){
+ const at=starts[i],len=buffers[i].duration,offset=Math.max(0,t-at);
+ if(t>=at+len)continue;
+ const begin=now+Math.max(0,at-t),remaining=len-offset;
+ if(remaining<=0)continue;
+ const source=ctx.createBufferSource(),g=ctx.createGain();source.buffer=buffers[i];source.connect(g);g.connect(voiceBus);
+ const v=i===0?.95:i===1?.84:.72;
+ g.gain.setValueAtTime(0,begin);g.gain.linearRampToValueAtTime(v,begin+Math.min(.4,remaining/4));
+ g.gain.setValueAtTime(v,begin+Math.max(.45,remaining-.9));g.gain.linearRampToValueAtTime(0,begin+remaining);
+ source.start(begin,offset,remaining);sources.push(source);
+ }
+}
+function wind(t){
+if(!ctx)return;const fade=t>total-120?Math.max(0,(total-t)/120):1;
+noiseGain.gain.setTargetAtTime(playing?Number($('volume').value)/100*.45*fade:0,ctx.currentTime,.35);
+}
+function frame(){
+if(!playing)return;
+const t=Math.min(total,ctx.currentTime-started);
+pos=t;update(t);wind(t);
+if(t>=total){stop();$('message').textContent='最後までお聴きいただきありがとう。';return}
+raf=requestAnimationFrame(frame);
+}
+function jump(t){
+pos=Math.max(0,Math.min(total,t));update(pos);
+if(!playing)return;
+started=ctx.currentTime-pos;schedule(pos);wind(pos);
+}
+$('start').onclick=async()=>{if(playing){stop();return}if(buffers.length!==3)return;
+await ctx.resume();playing=true;started=ctx.currentTime-pos;schedule(pos);wind(pos);
+$('start').textContent='■ 停止する';$('message').textContent='今夜は、ゆっくり甘えていいよ。';
+raf=requestAnimationFrame(frame);
+};
+$('seek').addEventListener('input',()=>{$('position').textContent=fmt(Number($('seek').value))+' / '+fmt(total)});
+$('seek').addEventListener('change',()=>jump(Number($('seek').value)));
+$('volume').addEventListener('input',()=>{$('volumeText').textContent=$('volume').value+'%';wind(pos)});
+load();
+})();
+</script></body></html>
