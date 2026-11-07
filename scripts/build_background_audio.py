@@ -102,8 +102,16 @@ def main():
                 return
             count = min(count, len(mix) - at)
             part = track[sample_offset:sample_offset + count]
+            # Sui clips have different recorded levels. Lift quiet speech toward
+            # a consistent, audible level before applying the sleep fade.
+            # A peak guard prevents clipping or an unexpectedly loud phrase.
+            rms = float(np.sqrt(np.mean(np.square(part, dtype=np.float64))))
+            peak = float(np.max(np.abs(part)))
+            boost = min(6.0, max(1.0, 0.11 / max(rms, 0.001)))
+            if peak > 0:
+                boost = min(boost, 0.82 / peak)
             fade = min(round(SR * 0.055), count // 2)
-            levels = np.full(count, 0.85 * gain, dtype=np.float32)
+            levels = np.full(count, 0.85 * gain * boost, dtype=np.float32)
             if fade:
                 levels[:fade] *= np.linspace(0, 1, fade, dtype=np.float32)
                 levels[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
@@ -128,7 +136,9 @@ def main():
         for i in range(101):
             t = count_start + i * 10
             number = 100 - i
-            quiet = pow(0.18, i / 100)
+            # Keep words gentle but intelligible throughout. The old 18%-at-end
+            # curve buried the whisper under wind and phone speaker noise.
+            quiet = 1.0 - 0.50 * pow(i / 100, 1.3)
             span = whispers[i]
             take = min(5.4, span["end"] - span["start"])
             if take > 0.1:
@@ -148,7 +158,7 @@ def main():
                     clip = suggestions[(i * 7 + i // 10) % len(suggestions)]
                     add(clip, t + 4.8, gain=0.38 * quiet, duration=4.9)
 
-        # Gentle 6% ambient wind, permanently mixed in so background playback
+        # Gentle 4% ambient wind, permanently mixed in so background playback
         # cannot depend on Web Audio, timers or another audio element.
         rng = np.random.default_rng(2608)
         period = 3 * SR
@@ -164,7 +174,18 @@ def main():
             fade_in = np.minimum(1.0, now / 4.0)
             fade_out = np.minimum(1.0, np.maximum(0, total_seconds - now) / 120.0)
             indexes = np.arange(begin, end) % period
-            mix[begin:end] += loop[indexes] * (0.06 * 0.45 * fade_in * fade_out)
+            mix[begin:end] += loop[indexes] * (0.04 * 0.45 * fade_in * fade_out)
+
+        # These are speech-only checkpoints, before ambient noise is added.
+        # Catch a broken/quiet source mix instead of publishing wind alone.
+        for title, at in [("intro", 0), ("count_start", count_start),
+                          ("count_middle", count_start + 500),
+                          ("count_late", count_start + 900)]:
+            seg = mix[round(at * SR): round((at + 8) * SR)]
+            level = float(np.sqrt(np.mean(np.square(seg, dtype=np.float64))))
+            print(f"Voice checkpoint {title}: RMS {level:.5f}", flush=True)
+            if level < 0.008:
+                raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
 
         raw = temp / "sleep.raw"
         np.clip(mix, -0.98, 0.98).astype("<f4").tofile(raw)
