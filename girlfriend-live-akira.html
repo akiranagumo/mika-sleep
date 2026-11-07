@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#180f26">
-<title>SLEEPLESS — 会話相手を選ぶ Ver.1.2.0</title>
+<title>SLEEPLESS — 会話相手を選ぶ Ver.1.2.1</title>
 <meta name="description" content="AIが毎晩違うことを話してくれる恋人添い寝体験。音声・文字で会話もできる試作。">
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 7%,#50273e 0,#22182c 48%,#100e19 100%);color:#fdf0ec;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:18px 13px 40px}
@@ -170,7 +170,7 @@ main> *{z-index:1}
 .stage-akira .portrait::after{content:"";position:absolute;z-index:2;pointer-events:none;left:0;right:0;bottom:0;height:20%;background:linear-gradient(180deg,transparent,#091e41ee 95%)}
 .stage-akira .stage-person .person-label{font-family:Georgia,serif;font-weight:800;letter-spacing:.12em}
 </style></head><body><main>
-<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.2.0</span></div>
+<div class="brand"><span class="neon-symbol">✧</span> SLEEPLESS <span class="ver">LIVE STUDIO · Ver.1.2.1</span></div>
 <div class="live-title"><span class="live-pill"><i></i> NIGHT LIVE</span><span class="live-right">TWO VOICES · ONE NIGHT</span></div>
 <h1 id="headline">今夜は、誰と話したい？</h1>
 <div class="studio-stage" id="studioStage">
@@ -269,7 +269,7 @@ for(const who of ["mika","akira"]){
 const con=await Conversation.startSession({agentId:AGENTS[who],connectionType:"websocket",
 onConnect:()=>status((who==="mika"?"ミカ":"AKIRA")+"が接続しました…"),
 onDisconnect:()=>{if(duoReady){status("接続が切れました。再度はじめるには一度終了してね。");duoReady=false}},
-onError:e=>status("LIVE接続エラー："+(e?.message||String(e))),
+onError:e=>status("LIVE接続エラー："+liveErrorMessage(e)),
 onModeChange:m=>{duoVoices[who]=m.mode||"listening";$("studioStage").dataset.speaker=m.mode==="speaking"?who:""},
 onMessage:m=>onDuoMessage(who,m)});
 duoSessions[who]=con;
@@ -281,8 +281,8 @@ const selected=$("liveCustom").value.trim()||$("liveTopic").value;
 const prompt="【番組開始：ミカとAKIRAのLIVEトーク。ユーザー本人の発言ではありません】テーマ："+selected.slice(0,220)+"。ミカが短く元気に話しかけ、AKIRAがそれに返す。"+paceInstruction();
 $("log").replaceChildren();bubble("STUDIO","今夜のテーマ："+selected);
 try{duoExpected="mika";duoSessions.mika.sendUserMessage(prompt)}catch(e){throw e}
-$("start").disabled=false;$("start").textContent="■ LIVEを終了する";windVolume();limitTimer=setTimeout(()=>finish(),7*60*1000);status("2人のLIVEが始まりました。");
-}catch(e){duoReady=false;duoExpected=null;const old=duoSessions;duoSessions={};for(const x of Object.values(old))try{await x.endSession()}catch(_){};uiStopped("二人の接続に失敗："+(e?.message||String(e)));}
+$("start").disabled=false;$("start").textContent="■ LIVEを終了する";windVolume();limitTimer=setTimeout(()=>finish(),7*60*1000);status("LIVE接続成功。ミカとAKIRAが話し始めるよ。");
+}catch(e){duoReady=false;duoExpected=null;const old=duoSessions;duoSessions={};for(const x of Object.values(old))try{await x.endSession()}catch(_){};uiStopped("二人の接続に失敗："+liveErrorMessage(e));}
 }
 function rapidNext(){
 if(rapidTimer)clearTimeout(rapidTimer);
@@ -290,6 +290,7 @@ if(!active||!session||persona==="duo"||mode!=="auto"||pace()!=="rapid")return;
 rapidTimer=setTimeout(()=>{if(!active||!session||mode!=="auto"||pace()!=="rapid")return;if(voiceMode==="speaking"||Date.now()-lastUserAt<7500){rapidNext();return}try{session.sendUserMessage("【自動トーク進行用、ユーザーの発話ではありません】前の話から少しだけ続け、軽やかに話題を転換して。短い台詞をマシンガンのようにテンポよく。ユーザーの架空の発言を事実として記憶しない。")}catch(e){}},7000)
 }
 
+function liveErrorMessage(error){const raw=typeof error==="string"?error:(error?.message||error?.reason||JSON.stringify(error)||"不明なエラー");if(/daily limit|daily.*limit|4300|上限/i.test(raw))return "今日の会話回数の上限に達したよ。時間を空けるか、明日また試してね。";if(/concurren|already in use|capacity|429/i.test(raw))return "同時接続の上限だよ。別のタブでLIVEや通話が動いていないか確認してね。";if(/microphone|permission|notallowed|notallowederror|denied/i.test(raw))return "マイクの許可が必要だよ。ブラウザのマイクを許可してから試してね。";return String(raw).slice(0,180)}
 const status=s=>$("status").textContent=s;
 function bubble(who,message){if(!message||!String(message).trim())return;const log=$("log"),e=document.createElement("div"),label=document.createElement("span");e.className="bubble"+(who==="あなた"?" user":"");label.className="who";label.textContent=who;e.append(label,document.createTextNode(String(message)));log.append(e);while(log.children.length>16)log.firstElementChild.remove();log.scrollTop=log.scrollHeight}
 function clearTimers(){if(autoTimer)clearTimeout(autoTimer);if(limitTimer)clearTimeout(limitTimer);autoTimer=null;limitTimer=null;cancelDuoTimers();duoRelayWaiting=false}
