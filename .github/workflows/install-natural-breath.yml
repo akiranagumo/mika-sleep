@@ -1,0 +1,25 @@
+name: Install Sui natural breathing voice
+on:
+  push:
+    paths:
+      - '.github/workflows/install-natural-breath.yml'
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download new Sui voice clips
+        run: |
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/umciiIdzXkJRGeP4F6Cv/oAKBeITOTzZXXjrWkwCF/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=fvYHsesSjKFkGOJVQwz644LXy8o=' -o 'sui-breath-new-intro.mp3'
+          test $(wc -c < sui-breath-new-intro.mp3) -gt 1000
+          curl --fail --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/E0I4CvcDUf31Lk9FzXyb/RkCRNEzHAAjvejWhHcs7/content.mp3?Expires=1794031200&KeyName=assets-cdn-key-1&Signature=hq-oAdkKA5dKYp2iXYRbB__Nahc=' -o 'sui-breath-new-inhale.mp3'
+          test $(wc -c < sui-breath-new-inhale.mp3) -gt 1000
+      - name: Commit audio assets
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add sui-breath-new-*.mp3
+          git commit -m 'Store natural breathing narration' || exit 0
+          git push
