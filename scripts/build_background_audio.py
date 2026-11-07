@@ -211,7 +211,7 @@ def main():
                     audio = mix[begin:end].copy()
                     if wind_level > 0:
                         now = np.arange(begin, end, dtype=np.float32) / SR
-                        fade_in = np.minimum(1.0, now / 4.0)
+                        fade_in = np.minimum(1.0, now / 0.8)
                         fade_out = np.minimum(1.0, np.maximum(0, total_seconds - now) / 120.0)
                         indexes = np.arange(begin, end) % period
                         audio += loop[indexes] * (wind_level * 0.45 * fade_in * fade_out)
