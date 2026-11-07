@@ -16,11 +16,11 @@ jobs:
           test $(wc -c < sui-count-whisper.mp3) -gt 10000
       - name: Segment whispers into 101 timed clips
         run: |
-          python3 -m pip install -q numpy
+          python3 -m pip install -q numpy imageio-ffmpeg
           python3 - <<'PY'
-          import json, subprocess, numpy as np
+          import json, subprocess, numpy as np, imageio_ffmpeg
           from pathlib import Path
-          raw=subprocess.check_output(['ffmpeg','-loglevel','error','-i','sui-count-whisper.mp3','-f','f32le','-ar','16000','-ac','1','pipe:1'])
+          raw=subprocess.check_output([imageio_ffmpeg.get_ffmpeg_exe(),'-loglevel','error','-i','sui-count-whisper.mp3','-f','f32le','-ar','16000','-ac','1','pipe:1'])
           audio=np.frombuffer(raw,dtype='<f4')
           rate=16000
           dt=.04
