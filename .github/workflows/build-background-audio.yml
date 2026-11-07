@@ -28,6 +28,15 @@ jobs:
         run: |
           set -o pipefail
           python scripts/build_background_audio.py 2>&1 | tee build-background-debug.txt
+      - name: Produce 8-second wind-only listening samples
+        run: |
+          set -euo pipefail
+          files=(sleep-background-wind-02.mp3 sleep-background-wind-05.mp3 sleep-background-wind-10.mp3 sleep-background-wind-20.mp3)
+          for i in "${!files[@]}"; do
+            n=$((i+1))
+            ffmpeg -nostdin -y -hide_banner -loglevel error -ss 1450 -t 8 -i "${files[$i]}" -c:a libmp3lame -b:a 96k "wind-preview-${n}.mp3"
+            test -s "wind-preview-${n}.mp3"
+          done
       - name: Validate MP3 has expected length and non-silent speech
         run: |
           python - <<'PY'
@@ -77,7 +86,7 @@ jobs:
         run: |
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
-          git add sleep-background-full.mp3 sleep-background-wind-*.mp3
+          git add sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3
           git commit -m 'Publish Sui sleep voice with five quiet wind presets for iOS background playback' || exit 0
           git pull --rebase
           git push
