@@ -30,20 +30,28 @@ jobs:
           python scripts/build_background_audio.py 2>&1 | tee build-background-debug.txt
       - name: Validate MP3 has expected length and non-silent speech
         run: |
-          test -s sleep-background-full.mp3
-          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 sleep-background-full.mp3
           python - <<'PY'
           import json, subprocess
-          result = subprocess.check_output(['ffprobe','-v','error','-show_format','-of','json','sleep-background-full.mp3'])
-          duration = float(json.loads(result)['format']['duration'])
-          assert 1850 < duration < 2100, f'Unexpected duration: {duration}'
+          paths = ['sleep-background-full.mp3','sleep-background-wind-02.mp3',
+                   'sleep-background-wind-05.mp3','sleep-background-wind-10.mp3',
+                   'sleep-background-wind-20.mp3']
+          durations = []
+          for filename in paths:
+              info = json.loads(subprocess.check_output(
+                  ['ffprobe','-v','error','-show_format','-of','json',filename]))['format']
+              duration = float(info['duration'])
+              assert 1850 < duration < 2100, f'Unexpected duration for {filename}: {duration}'
+              assert int(info['size']) > 1000000, f'Unexpected size for {filename}'
+              durations.append(duration)
+              print(filename, info['duration'], info['size'], flush=True)
+          assert max(durations) - min(durations) < 0.1, durations
           PY
       - name: Commit audio to public GitHub Pages repository
         run: |
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
-          git add sleep-background-full.mp3
-          git commit -m 'Publish continuous Sui sleep audio for iOS background playback' || exit 0
+          git add sleep-background-full.mp3 sleep-background-wind-*.mp3
+          git commit -m 'Publish Sui sleep voice with five quiet wind presets for iOS background playback' || exit 0
           git pull --rebase
           git push
 
