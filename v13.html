@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08162a">
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3</title>
+<meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0,#263b59 0%,#0d2036 50%,#07111e 100%);color:#f8ecdd;padding:18px 14px max(32px,env(safe-area-inset-bottom))}
+main{max-width:530px;margin:0 auto;background:linear-gradient(165deg,#213752df,#12243beb);border:1px solid #9bafbc4c;border-radius:30px;padding:30px 21px 25px;box-shadow:0 25px 100px #0007}
+.brand{text-align:center;font-size:12px;letter-spacing:.18em;color:#f3dcb1}.version{font-size:11px;letter-spacing:0;color:#acc6d6}.moon{width:138px;height:138px;margin:31px auto 22px;position:relative;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fffaf0,#f4daab 38%,#d4a76e 100%);box-shadow:0 0 36px #f6dfb572,0 0 95px #d5c4a33a;animation:float 10s ease-in-out infinite}.moon:after{content:"";position:absolute;inset:-13px -22px 13px 35px;border-radius:50%;background:#1b324d}
+@keyframes float{50%{transform:translateY(-5px)}}
+h1{text-align:center;font-weight:400;letter-spacing:.08em;font-size:25px;margin:0 0 10px}.tag{text-align:center;color:#bacad5;font-size:13px;line-height:1.9;margin:0 auto 24px;max-width:360px}
+.flag{border:1px solid #c9d8de50;background:#b2cbd412;padding:11px 13px;border-radius:15px;color:#dce9ef;font-size:13px;line-height:1.65;text-align:center;margin:0 0 22px}
+.button{display:block;width:100%;min-height:64px;border:1px solid #f3e2b7;border-radius:20px;background:linear-gradient(120deg,#f5e0b5,#d5b985);color:#15263a;font-weight:800;font-size:18px;cursor:pointer}
+.button.secondary{margin-top:10px;background:transparent;color:#efdbc4;min-height:48px;font-size:14px;border-color:#8ba3b066}.button:disabled{opacity:.55}
+.row{display:flex;justify-content:space-between;gap:12px;color:#d6e0e5;font-size:13px;margin:20px 0 8px;font-variant-numeric:tabular-nums}
+.seek{width:100%;accent-color:#e9ce9f;height:28px;cursor:pointer}
+audio{width:100%;margin:18px 0 4px;min-height:44px}
+.note{color:#c3d0dd;line-height:1.85;font-size:12px;margin:16px 0}
+.status{font-size:12px;color:#f5dfb5;min-height:36px;line-height:1.65}
+details{margin-top:22px;border-top:1px solid #a6b8cd45;padding-top:18px;color:#d0dce4;font-size:13px;line-height:1.85}summary{color:#f2daa6;cursor:pointer;font-weight:600}ol{padding-left:22px}li{margin:8px 0}
+a{color:#edd29b;text-underline-offset:3px}.links{display:flex;gap:16px;flex-wrap:wrap;margin-top:26px;font-size:12px}
+strong{color:#f8e7c0}#audio{color-scheme:dark}
+@media(prefers-reduced-motion:reduce){.moon{animation:none}}
+</style>
+</head>
+<body><main>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3 · BACKGROUND AUDIO</span></div>
+<div class="moon" aria-hidden="true"></div>
+<h1>静かな眠りへ</h1>
+<p class="tag">Suiの声で、呼吸を整え、静かな情景へ。<br>あとは目を閉じて、音に身を任せてね。</p>
+<div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>音声を1本のMP3に統合し、iPhoneの標準プレーヤーで再生します。</div>
+<button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
+<button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
+<div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
+<input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3"></audio>
+<div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
+<p class="note">約32分の睡眠誘導です。風の音は標準の6%で音声にミックス済み。再生を1本の音源にしたため、こちらの版では風の音だけを別に調整することはできません。</p>
+<details>
+<summary>iPhoneで画面を閉じても聴くには</summary>
+<ol>
+<li>Safariでこのページを開いて、<strong>睡眠導入をはじめる</strong>を押す。</li>
+<li>音が出たら画面をロックする。またはホーム画面に戻り、別のアプリを開く。</li>
+<li>止まった場合はロック画面の再生ボタン、またはコントロールセンターの再生ボタンを押す。</li>
+<li>使いやすければSafariの「共有」→「ホーム画面に追加」で登録する。</li>
+</ol>
+<p><strong>注意：</strong>Safariのタブを閉じたり、アプリを強制終了した場合まで再生を保証するものではありません。iOSの制限や機種・設定により、バックグラウンド再生の挙動は異なります。</p>
+</details>
+<div class="links"><a href="./v12-legacy.html">旧Ver.1.2を開く</a><a href="./girlfriend-live-akira.html">SLEEPLESS LIVEを開く</a></div>
+</main>
+<script>
+(()=>{"use strict";
+const audio=document.getElementById("audio");
+const play=document.getElementById("play");
+const back10=document.getElementById("back10");
+const seek=document.getElementById("seek");
+const label=document.getElementById("elapsed");
+const status=document.getElementById("status");
+let seeking=false;
+const fmt=v=>{v=Math.max(0,Math.floor(Number(v)||0));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
+function update(){const duration=Number.isFinite(audio.duration)?audio.duration:0;
+ if(!seeking)seek.value=duration?String(Math.round(1000*audio.currentTime/duration)):"0";
+ label.textContent=fmt(audio.currentTime)+" / "+(duration?fmt(duration):"約32分");
+ play.textContent=audio.paused?"▶ "+(audio.currentTime>0?"再生を続ける":"睡眠導入をはじめる"):"Ⅱ 一時停止";
+ if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=audio.paused?"paused":"playing";if(duration&&navigator.mediaSession.setPositionState)navigator.mediaSession.setPositionState({duration,playbackRate:1,position:Math.min(duration,audio.currentTime)})}catch(e){}}
+}
+async function toggle(){try{if(audio.paused){await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
+play.addEventListener("click",toggle);
+back10.addEventListener("click",()=>{audio.currentTime=Math.max(0,audio.currentTime-10);update()});
+seek.addEventListener("input",()=>{seeking=true;const d=audio.duration;if(Number.isFinite(d)){label.textContent=fmt(Number(seek.value)/1000*d)+" / "+fmt(d)}});
+seek.addEventListener("change",()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number(seek.value)/1000*audio.duration;seeking=false;update()});
+for(const event of ["timeupdate","loadedmetadata","durationchange","play","pause","seeking","seeked","ended"])audio.addEventListener(event,update);
+audio.addEventListener("error",()=>{status.textContent="音声ファイルを読み込めませんでした。公開中の場合は数分後に再読み込みしてね。"});
+if("mediaSession" in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:"静かな眠りへ",artist:"Sui · AKIRA SLEEP",album:"AKIRA SLEEP",artwork:[]});
+navigator.mediaSession.setActionHandler("play",()=>audio.play());
+navigator.mediaSession.setActionHandler("pause",()=>audio.pause());
+navigator.mediaSession.setActionHandler("seekbackward",details=>{audio.currentTime=Math.max(0,audio.currentTime-(details.seekOffset||10))});
+navigator.mediaSession.setActionHandler("seekforward",details=>{audio.currentTime=Math.min(audio.duration||Infinity,audio.currentTime+(details.seekOffset||10))});
+navigator.mediaSession.setActionHandler("seekto",details=>{if(details.seekTime!=null)audio.currentTime=details.seekTime});
+}catch(e){}}
+update();
+})();
+</script>
+</body></html>
