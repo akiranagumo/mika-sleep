@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.2</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,6 +20,10 @@ h1{text-align:center;font-weight:400;letter-spacing:.08em;font-size:25px;margin:
 .button.secondary{margin-top:10px;background:transparent;color:#efdbc4;min-height:48px;font-size:14px;border-color:#8ba3b066}.button:disabled{opacity:.55}
 .row{display:flex;justify-content:space-between;gap:12px;color:#d6e0e5;font-size:13px;margin:20px 0 8px;font-variant-numeric:tabular-nums}
 .seek{width:100%;accent-color:#e9ce9f;height:28px;cursor:pointer}
+.wind-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 2px;color:#f4e2c0;font-size:15px}
+.wind-label{font-variant-numeric:tabular-nums;font-weight:700;color:#f3d6a1}
+.wind-slider{width:100%;accent-color:#e3c691;height:32px;cursor:pointer}
+.wind-ticks{display:flex;justify-content:space-between;color:#aabdc8;font-size:11px;margin-bottom:16px}
 audio{width:100%;margin:18px 0 4px;min-height:44px}
 .note{color:#c3d0dd;line-height:1.85;font-size:12px;margin:16px 0}
 .status{font-size:12px;color:#f5dfb5;min-height:36px;line-height:1.65}
@@ -30,7 +34,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.1 · SUI VOICE FIX</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.2 · WIND CONTROL</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
 <p class="tag">Suiの声で、呼吸を整え、静かな情景へ。<br>あとは目を閉じて、音に身を任せてね。</p>
@@ -38,11 +42,14 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
 <button class="button secondary" type="button" id="back10">↶ 10秒戻す</button>
+<div class="wind-row"><label for="wind">風の音（環境音）</label><span class="wind-label" id="windLabel">なし · 0%</span></div>
+<input class="wind-slider" type="range" id="wind" min="0" max="4" step="1" value="0" aria-label="風の音量を5段階で調整">
+<div class="wind-ticks"><span>なし</span><span>ごく小</span><span>小</span><span>中</span><span>大</span></div>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-sui-fix-1"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-wind-2"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。風の音は標準の4%で音声にミックス済み。再生を1本の音源にしたため、こちらの版では風の音だけを別に調整することはできません。</p>
+<p class="note">約32分の睡眠誘導です。初期設定は風の音なし。風の音は5段階から選べます。iPhoneでの画面ロック中の再生を保つため、設定を変えると音源を切り替えます。切り替え時に少し音が途切れる場合があります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -60,6 +67,50 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 const audio=document.getElementById("audio");
 const play=document.getElementById("play");
 const back10=document.getElementById("back10");
+const wind=document.getElementById("wind");
+const windLabel=document.getElementById("windLabel");
+const presetFiles=[
+ ["なし · 0%", "sleep-background-full.mp3"],
+ ["ごく小 · 0.2%", "sleep-background-wind-02.mp3"],
+ ["小 · 0.5%", "sleep-background-wind-05.mp3"],
+ ["中 · 1.0%", "sleep-background-wind-10.mp3"],
+ ["大 · 2.0%", "sleep-background-wind-20.mp3"]
+];
+let presetIndex=0;
+try{const x=Number(localStorage.getItem("akira_sleep_wind_v132"));if(Number.isInteger(x)&&x>=0&&x<5)presetIndex=x}catch(e){}
+wind.value=String(presetIndex);
+windLabel.textContent=presetFiles[presetIndex][0];
+const presetUrl=i=>"./"+presetFiles[i][1]+"?v=20261108-wind-2";
+audio.src=presetUrl(presetIndex);
+function switchWind(i){
+  if(i===presetIndex)return;
+  presetIndex=i;
+  windLabel.textContent=presetFiles[i][0];
+  try{localStorage.setItem("akira_sleep_wind_v132",String(i))}catch(e){}
+  const keepTime=audio.currentTime||0;
+  const shouldResume=!audio.paused&&!audio.ended;
+  audio.pause();
+  audio.src=presetUrl(i);
+  audio.load();
+  const restoreTime=()=>{
+    if(Number.isFinite(audio.duration))try{audio.currentTime=Math.min(keepTime,Math.max(0,audio.duration-0.1))}catch(e){}
+    update();
+  };
+  audio.addEventListener("loadedmetadata",restoreTime,{once:true});
+  try{audio.currentTime=keepTime}catch(e){}
+  if(shouldResume){
+    status.textContent="風の音を「"+presetFiles[i][0]+"」に変更中。再生位置を保って音声を再開します。";
+    audio.play().then(()=>{status.textContent="風の音："+presetFiles[i][0]+"。再生中。";}).catch(e=>{
+      status.textContent="音源の切り替えで再生が止まりました。上の「再生を続ける」を押してください。詳細："+(e?.message||e);
+      update();
+    });
+  } else {
+    status.textContent="風の音："+presetFiles[i][0]+"。次の再生から反映します。";
+  }
+  update();
+}
+wind.addEventListener("input",()=>{windLabel.textContent=presetFiles[Number(wind.value)][0];});
+wind.addEventListener("change",()=>switchWind(Number(wind.value)));
 const voiceTest=document.getElementById("voiceTest");
 const voiceSample=new Audio("./sui-breath-new-intro.mp3");
 voiceSample.preload="none";
