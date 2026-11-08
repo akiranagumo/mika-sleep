@@ -168,28 +168,44 @@ def main():
                 raise ValueError(f"Invalid Sui whole-word boundaries in {filename}: {parts}")
             print(f"Verified {count} complete, uncut Sui words in {filename}, "
                   f"{len(gaps)} real spoken-word silences",flush=True)
-            return parts
+            # Spoken-word locations relative to each safe clip, excluding
+            # the silence leading to a numeral after a previous full word.
+            return [
+                (a,b,
+                 max(0.0,gaps[i-1][1]-a) if i else 0.0,
+                 (gaps[i][0]-a) if i<count-1 else (b-a))
+                for i,(a,b) in enumerate(parts)
+            ]
 
         count_clips={}
         for block,(recording,file) in enumerate(paused_blocks):
             wanted=min(10,101-block*10)
             intervals=safe_whole_words(recording,file,wanted)
-            for j,(begin,end) in enumerate(intervals):
+            for j,(begin,end,voice_begin,voice_end) in enumerate(intervals):
                 number=100-block*10-j
                 if number in count_clips:
                     raise ValueError(f"Duplicate count {number}")
-                count_clips[number]=(recording,begin,end)
+                count_clips[number]=(recording,begin,end,voice_begin,voice_end)
         if sorted(count_clips)!=list(range(101)):
             raise ValueError("Master audio must include all 101 uncut counts from 100 to 0")
         print(f"Verified complete 100->0 Sui count, "
               f"{len(count_clips)} sound intervals from real silent breaks",flush=True)
+        timing = [
+            {"n":n,"start":round(count_clips[n][3],3),
+             "end":round(count_clips[n][4],3)}
+            for n in range(100,-1,-1)
+        ]
+        if len(timing)!=101 or any(x["end"]<=x["start"] for x in timing):
+            raise ValueError("Invalid Sui voice/silence timing manifest")
+        (ROOT/f"sui-master-timing-{count_lang}.json").write_text(
+            json.dumps(timing,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
         def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
             if number not in count_clips:
                 raise ValueError(f"Missing complete Sui spoken count {number}")
             if language not in (None,mode):
                 raise ValueError("Do not mix different count languages")
-            track,start,end=count_clips[number]
+            track,start,end,voice_begin,voice_end=count_clips[number]
             add(track,when,start=start,duration=end-start,
                 gain=.90*intensity,target_rms=.072,
                 fade_seconds=.012,audible_count=(language is None))
