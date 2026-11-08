@@ -60,18 +60,36 @@ def main():
     print(f"Sleep voice mode: {mode}", flush=True)
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
     new_whispers = json.loads((ROOT / "sui-whisper-japanese-segments.json").read_text("utf-8"))
-    old_english_whispers = json.loads((ROOT / "sui-whisper-v2-segments.json").read_text("utf-8"))
+    english_full = json.loads((ROOT / "sui-english-full101-segments.json").read_text("utf-8"))
     japanese_top = json.loads((ROOT / "sui-japanese-top-segments.json").read_text("utf-8"))
-    english_top = json.loads((ROOT / "sui-english-top-segments.json").read_text("utf-8"))
-    if any(len(a) != expected for a, expected in [
-            (old_english_whispers,90),(japanese_top,11),(english_top,11)]):
-        raise ValueError("Missing English/Japanese whisper source segments")
+
+    if len(japanese_top) != 11 or len(english_full) != 101:
+        raise ValueError("Need Japanese top eleven and complete English 100..0 source")
     if any(w["n"] != 100-i for i,w in enumerate(japanese_top)):
         raise ValueError("Japanese top digits are not 100..90")
-    if any(w["n"] != 100-i for i,w in enumerate(english_top)):
-        raise ValueError("English top digits are not 100..90")
-    if any(w["n"] != 89-i for i,w in enumerate(old_english_whispers)):
-        raise ValueError("English lower digits are not 89..0")
+    english_ones = ["zero","one","two","three","four","five","six",
+                    "seven","eight","nine","ten","eleven","twelve",
+                    "thirteen","fourteen","fifteen","sixteen","seventeen",
+                    "eighteen","nineteen"]
+    english_tens = ["","","twenty","thirty","forty","fifty",
+                    "sixty","seventy","eighty","ninety"]
+    def english_number(n):
+        if n == 100:
+            return "one hundred"
+        if n < 20:
+            return english_ones[n]
+        t, u = divmod(n, 10)
+        return english_tens[t] + (" " + english_ones[u] if u else "")
+    previous_end = -1
+    for i, span in enumerate(english_full):
+        number = 100-i
+        if span["n"] != number or span["reading"] != english_number(number):
+            raise ValueError(f"English numeral skipped or mismatched: index {i}, {span}")
+        start, end = float(span["start"]), float(span["end"])
+        if start < previous_end - 0.04 or end <= start or end-start > 3.5:
+            raise ValueError(f"English continuous source order/duration invalid at {number}")
+        previous_end = end
+    print("Validated all 101 consecutive spoken English numbers, 100 through 0", flush=True)
     comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
     if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
         raise ValueError("Expected all 89..0 new Sui whisper numbers in order")
@@ -111,9 +129,9 @@ def main():
             return memo[filename]
 
         new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
-        old_english_audio = asset("sui-count-whisper-v2.mp3")
+        english_full_audio = asset("sui-english-full101.mp3")
         japanese_top_audio = asset("sui-japanese-top.mp3")
-        english_top_audio = asset("sui-english-top.mp3")
+
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
         intro = asset("sui-v139-opening.mp3")
         breath_intro = asset("sui-v139-breath-guide.mp3")
@@ -161,14 +179,14 @@ def main():
             if not 0 <= number <= 100:
                 raise ValueError(f"Invalid count {number}")
             lang = language or mode
-            if number >= 90:
-                spans, track = ((japanese_top, japanese_top_audio) if lang == "japanese"
-                                else (english_top, english_top_audio))
-                span = spans[100-number]
+            if lang == "english":
+                # ALL 101 numbers are drawn from ONE continuous Sui recording;
+                # never splice in the former 89..0 source which caused jumps.
+                span, track = english_full[100-number], english_full_audio
+            elif number >= 90:
+                span, track = japanese_top[100-number], japanese_top_audio
             else:
-                spans, track = ((new_whispers, new_whisper_audio) if lang == "japanese"
-                                else (old_english_whispers, old_english_audio))
-                span = spans[89-number]
+                span, track = new_whispers[89-number], new_whisper_audio
             if span["n"] != number:
                 raise ValueError(f"Wrong whisper number: expected {number}")
             start = float(span["start"])
