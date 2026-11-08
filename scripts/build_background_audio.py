@@ -75,8 +75,10 @@ def main():
         # Read only the language being mastered; the output is a standalone,
         # monolithic MP3 for this language and each chosen wind preset.
         count_lang = "ja" if mode == "japanese" else "en"
-        paused_blocks = [(asset(f"sui-paused-{count_lang}-b{b:02d}.mp3"),
-                          f"sui-paused-{count_lang}-b{b:02d}.mp3") for b in range(11)]
+        # All count numbers are Sui's original Eleven V4 whispered takes;
+        # never fall back to the older multilingual_v2 normal speaking voice.
+        v4_blocks = [asset(f"sui-whisper-v4-{count_lang}-b{b:02d}.mp3")
+                     for b in range(11)]
         comfort_tracks = [asset(f"sui-comfort-atomic-{i:02d}.mp3")
                           for i in range(14)]
         intro = asset("sui-v142-opening.mp3")
@@ -140,65 +142,50 @@ def main():
             mix[at:at + count] += segment
 
 
-        def safe_whole_words(track, filename, count):
-            """Never cut into spoken syllables: split in deep recorded silence.
-
-            Each sequence has one number then a >=1.7-second naturally
-            silent gap, verified by the acquisition CI job. Unlike subtitle
-            alignment, the midpoint of that silence cannot chop a word.
-            """
-            if count==1:
-                return [(0.0,len(track)/SR,0.0,len(track)/SR)]
-            proc=subprocess.run([
-                "ffmpeg","-nostdin","-hide_banner","-i",str(ROOT/filename),
-                "-af","silencedetect=noise=-38dB:d=0.65","-f","null","-",
-            ],capture_output=True,text=True)
-            if proc.returncode!=0:
-                raise ValueError(f"Cannot check Sui silence in {filename}")
-            starts=[float(x) for x in re.findall(r"silence_start:\s*([\d.]+)",proc.stderr)]
-            ends=[float(x) for x in re.findall(r"silence_end:\s*([\d.]+)",proc.stderr)]
-            gaps=[(a,b) for a,b in zip(starts,ends)
-                  if b-a>=1.0 and a>0.10 and b<len(track)/SR-.10]
-            if len(gaps)!=count-1:
-                raise ValueError(f"Expected {count-1} true silent gaps in {filename}, found {len(gaps)}")
-            cuts=[(a+b)*.5 for a,b in gaps]
-            limits=[0.0,*cuts,len(track)/SR]
-            parts=list(zip(limits[:-1],limits[1:]))
-            if any(not (.2<end-start<4.5) for start,end in parts):
-                raise ValueError(f"Invalid Sui whole-word boundaries in {filename}: {parts}")
-            print(f"Verified {count} complete, uncut Sui words in {filename}, "
-                  f"{len(gaps)} real spoken-word silences",flush=True)
-            # Spoken-word locations relative to each safe clip, excluding
-            # the silence leading to a numeral after a previous full word.
-            return [
-                (a,b,
-                 max(0.0,gaps[i-1][1]-a) if i else 0.0,
-                 (gaps[i][0]-a) if i<count-1 else (b-a))
-                for i,(a,b) in enumerate(parts)
-            ]
-
+        # Exactly 101 verified words for each language, transcribed from
+        # original Sui Eleven V4 recordings with [whispers] delivery.
+        # The clipped word boundaries include a small pre/post-roll. We trim
+        # neither the reassuring phrases nor any part of the narration in
+        # the browser; each preset is a single already-mastered MP3.
+        voice_manifest=[]
+        for part_number in range(4):
+            voice_manifest.extend(json.loads(
+                (ROOT/f"sui-v4-whisper-manifest-part{part_number}.json").read_text("utf-8")))
+        blocks=sorted(
+            (b for b in voice_manifest if b["lang"]==count_lang),
+            key=lambda b:b["block"]
+        )
+        if len(blocks)!=11 or [b["block"] for b in blocks]!=list(range(11)):
+            raise ValueError(f"Missing genuine Sui V4 whispered {count_lang} count blocks")
         count_clips={}
-        for block,(recording,file) in enumerate(paused_blocks):
-            wanted=min(10,101-block*10)
-            intervals=safe_whole_words(recording,file,wanted)
-            for j,(begin,end,voice_begin,voice_end) in enumerate(intervals):
-                number=100-block*10-j
-                if number in count_clips:
-                    raise ValueError(f"Duplicate count {number}")
-                count_clips[number]=(recording,begin,end,voice_begin,voice_end)
+        for block,metadata in enumerate(blocks):
+            recording=v4_blocks[block]
+            wanted=min(10,101-10*block)
+            if len(metadata["clips"])!=wanted:
+                raise ValueError(f"Wrong number of Sui V4 whisper clips in {block}")
+            for index,word in enumerate(metadata["clips"]):
+                number=100-10*block-index
+                if word["n"]!=number or number in count_clips:
+                    raise ValueError(f"Skipped or repeated Sui V4 count {number}")
+                left,right=float(word["start"]),float(word["end"])
+                if not 0<=left<right<=len(recording)/SR+.04 or right-left>3.7:
+                    raise ValueError(f"Invalid Sui V4 whisper word {number} boundary")
+                right=min(right,len(recording)/SR)
+                count_clips[number]=(recording,left,right,0.02,max(.07,right-left-.025))
+            print(f"Sui V4 whisper {count_lang} block {block}: "
+                  f"{wanted} complete spoken numbers, voice source checked",flush=True)
         if sorted(count_clips)!=list(range(101)):
-            raise ValueError("Master audio must include all 101 uncut counts from 100 to 0")
-        print(f"Verified complete 100->0 Sui count, "
-              f"{len(count_clips)} sound intervals from real silent breaks",flush=True)
-        timing = [
+            raise ValueError("Sui V4 whispered countdown must include every number 100 to 0")
+        print("101 genuine Sui V4 whispered numbers confirmed: "
+              f"{mode}, one completed MP3",flush=True)
+
+        timing=[
             {"n":n,"start":round(count_clips[n][3],3),
              "end":round(count_clips[n][4],3)}
             for n in range(100,-1,-1)
         ]
-        if len(timing)!=101 or any(x["end"]<=x["start"] for x in timing):
-            raise ValueError("Invalid Sui voice/silence timing manifest")
         (ROOT/f"sui-master-timing-{count_lang}.json").write_text(
-            json.dumps(timing,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+            json.dumps(timing,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
 
         def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
             if number not in count_clips:
