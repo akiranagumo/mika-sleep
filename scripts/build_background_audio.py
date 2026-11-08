@@ -148,7 +148,7 @@ def main():
             alignment, the midpoint of that silence cannot chop a word.
             """
             if count==1:
-                return [(0.0,len(track)/SR)]
+                return [(0.0,len(track)/SR,0.0,len(track)/SR)]
             proc=subprocess.run([
                 "ffmpeg","-nostdin","-hide_banner","-i",str(ROOT/filename),
                 "-af","silencedetect=noise=-38dB:d=0.65","-f","null","-",
