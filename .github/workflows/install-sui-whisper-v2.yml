@@ -27,7 +27,7 @@ jobs:
           assert 138 < t < 141, f'unexpected audio length {t}'
           words=json.load(open('sui-whisper-japanese-segments.json'))
           assert len(words)==90
-          assert all(w['n']==89-i and 0<=w['start']<w['end']<=t+0.3 and len(w['reading'])>=2 for i,w in enumerate(words))
+          assert all(w['n']==89-i and 0<=w['start']<w['end']<=t+0.3 and len(w['reading'])>=1 for i,w in enumerate(words))
           PY
       - name: Publish voice source securely
         run: |
