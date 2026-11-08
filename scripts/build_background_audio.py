@@ -10,6 +10,7 @@ import base64
 import json
 import math
 import re
+import sys
 import subprocess
 import tempfile
 from pathlib import Path
@@ -53,6 +54,10 @@ def extract(pattern: str, src: str, name: str) -> str:
 
 
 def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "japanese"
+    if mode not in ("japanese", "english"):
+        raise ValueError("Expected japanese or english rendering mode")
+    print(f"Sleep voice mode: {mode}", flush=True)
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     # The countdown uses only Sui's dedicated whisper recording.
     b64_intro = extract(
@@ -61,6 +66,18 @@ def main():
     )
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
     new_whispers = json.loads((ROOT / "sui-whisper-japanese-segments.json").read_text("utf-8"))
+    old_english_whispers = json.loads((ROOT / "sui-whisper-v2-segments.json").read_text("utf-8"))
+    japanese_top = json.loads((ROOT / "sui-japanese-top-segments.json").read_text("utf-8"))
+    english_top = json.loads((ROOT / "sui-english-top-segments.json").read_text("utf-8"))
+    if any(len(a) != expected for a, expected in [
+            (old_english_whispers,90),(japanese_top,11),(english_top,11)]):
+        raise ValueError("Missing English/Japanese whisper source segments")
+    if any(w["n"] != 100-i for i,w in enumerate(japanese_top)):
+        raise ValueError("Japanese top digits are not 100..90")
+    if any(w["n"] != 100-i for i,w in enumerate(english_top)):
+        raise ValueError("English top digits are not 100..90")
+    if any(w["n"] != 89-i for i,w in enumerate(old_english_whispers)):
+        raise ValueError("English lower digits are not 89..0")
     comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
     if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
         raise ValueError("Expected all 89..0 new Sui whisper numbers in order")
@@ -109,6 +126,9 @@ def main():
 
         whisper_audio = asset("sui-count-whisper.mp3")
         new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
+        old_english_audio = asset("sui-count-whisper-v2.mp3")
+        japanese_top_audio = asset("sui-japanese-top.mp3")
+        english_top_audio = asset("sui-english-top.mp3")
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
         breath_intro = asset("sui-breath-new-intro.mp3")
         inhale = asset("sui-breath-new-inhale.mp3")
@@ -150,18 +170,21 @@ def main():
             mix[at:at + count] += part * levels
 
 
-        def whisper_count(number: int, when: float, *, intensity=1.0):
-            """Use true Sui whisper recordings with word-accurate boundaries."""
+        def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
+            """Use actual Sui whispered numerals in the selected language."""
             if not 0 <= number <= 100:
                 raise ValueError(f"Invalid count {number}")
+            lang = language or mode
             if number >= 90:
-                # Keep the 100..90 portion that already sounded whispered.
-                span = whispers[100 - number]
-                track = whisper_audio
+                spans, track = ((japanese_top, japanese_top_audio) if lang == "japanese"
+                                else (english_top, english_top_audio))
+                span = spans[100-number]
             else:
-                # Japanese hiragana-only take: 89..0 whispered in Japanese.
-                span = new_whispers[89 - number]
-                track = new_whisper_audio
+                spans, track = ((new_whispers, new_whisper_audio) if lang == "japanese"
+                                else (old_english_whispers, old_english_audio))
+                span = spans[89-number]
+            if span["n"] != number:
+                raise ValueError(f"Wrong whisper number: expected {number}")
             start = float(span["start"])
             duration = float(span["end"]) - start
             if duration < 0.30 or duration > 3.5:
@@ -191,10 +214,10 @@ def main():
             t = breath_start + 24 + 60 * cycle
             add(inhale, t)
             for n in range(1, 5):
-                whisper_count(n, t + 5 + 2 * n, intensity=0.9)
+                whisper_count(n, t + 5 + 2 * n, intensity=0.9, language="japanese")
             add(exhale, t + 22)
             for n in range(1, 7):
-                whisper_count(n, t + 25 + 2 * n, intensity=0.9)
+                whisper_count(n, t + 25 + 2 * n, intensity=0.9, language="japanese")
             if cycle < 2:
                 add(repeat, t + 47)
         add(nature, nature_start + 4)
@@ -218,7 +241,7 @@ def main():
         assert phrases_used >= 30, f"Insufficient reassurance whispers: {phrases_used}"
         print(f"Whisper QA: 101 full Sui whisper counts, "
               f"{phrases_used} complete gentle reassurance phrases; "
-              "89..0 replaced with Japanese-hiragana whisper-only take", flush=True)
+              f"count language={mode}; all numbers whispered", flush=True)
 
         # Validate Sui-only audio BEFORE adding wind: ambient must never mask
         # missing or weak speech clips.  The other files are pure remixes.
@@ -250,7 +273,7 @@ def main():
         # All outputs share exact sample count and MP3 encoding settings.
         chunk = 6 * SR
         for filename, wind_level in PRESETS:
-            outfile = ROOT / filename
+            outfile = ROOT / (filename if mode == "japanese" else filename.replace("sleep-background", "sleep-english"))
             cmd = [
                 "ffmpeg", "-nostdin", "-y", "-hide_banner", "-loglevel", "error",
                 "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "pipe:0",
