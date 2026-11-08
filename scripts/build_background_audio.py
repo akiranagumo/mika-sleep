@@ -185,7 +185,7 @@ def main():
             for n in range(100,-1,-1)
         ]
         (ROOT/f"sui-master-timing-{count_lang}.json").write_text(
-            json.dumps(timing,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+            json.dumps(timing,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
         def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
             if number not in count_clips:
