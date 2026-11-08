@@ -1,4 +1,4 @@
-name: Install new Sui whisper count 89-0
+name: Install Japanese hiragana Sui whisper 89-0
 on:
   push:
     paths:
@@ -17,31 +17,31 @@ jobs:
       - name: Download generated Sui whisper recording
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/3epxJIRhmXwECu8bE7SK/uZT4meqLi6CuOa3bnBsd/content.mp3?Expires=1794103200&KeyName=assets-cdn-key-1&Signature=2cgJzEUkytqgMmU2tV09V7N4SHk=' -o sui-count-whisper-v2.mp3
-          test $(wc -c < sui-count-whisper-v2.mp3) -gt 100000
-          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 sui-count-whisper-v2.mp3
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/wvoB8stmF4g9ppCrUVQn/Sg6kopEyhF5yMRX7aZjQ/content.mp3?Expires=1794114000&KeyName=assets-cdn-key-1&Signature=WgX6MyF_OGdGb1eh-9HfbZ-GD80=' -o sui-count-whisper-japanese.mp3
+          test $(wc -c < sui-count-whisper-japanese.mp3) -gt 100000
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 sui-count-whisper-japanese.mp3
           python - <<'PY'
           import json,subprocess
-          v=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_format','-of','json','sui-count-whisper-v2.mp3']))['format']
+          v=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_format','-of','json','sui-count-whisper-japanese.mp3']))['format']
           t=float(v['duration'])
-          assert 127 < t < 130, f'unexpected audio length {t}'
-          words=json.load(open('sui-whisper-v2-segments.json'))
+          assert 138 < t < 141, f'unexpected audio length {t}'
+          words=json.load(open('sui-whisper-japanese-segments.json'))
           assert len(words)==90
-          assert all(w['n']==89-i and 0<=w['start']<w['end']<=t+0.3 for i,w in enumerate(words))
+          assert all(w['n']==89-i and 0<=w['start']<w['end']<=t+0.3 and len(w['reading'])>=2 for i,w in enumerate(words))
           PY
       - name: Publish voice source securely
         run: |
           set -euo pipefail
-          cp sui-count-whisper-v2.mp3 /tmp/sui-count-whisper-v2.mp3
+          cp sui-count-whisper-japanese.mp3 /tmp/sui-count-whisper-japanese.mp3
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
           for attempt in 1 2 3; do
             git fetch origin main
             git reset --hard origin/main
-            cp /tmp/sui-count-whisper-v2.mp3 .
-            git add sui-count-whisper-v2.mp3
+            cp /tmp/sui-count-whisper-japanese.mp3 .
+            git add sui-count-whisper-japanese.mp3
             if git diff --cached --quiet; then exit 0; fi
-            git commit -m 'Store softly whispered Sui 89-to-0 count recording'
+            git commit -m 'Store Japanese hiragana Sui 89-to-0 whisper recording'
             if git push origin HEAD:main; then exit 0; fi
             sleep 2
           done
