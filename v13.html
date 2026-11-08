@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.8</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.9</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -36,18 +36,18 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.8 · JAPANESE / ENGLISH WHISPERS</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.3.9 · JAPANESE / ENGLISH WHISPERS</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
-<p class="tag">Suiの囁き声と、短い安心の言葉に包まれて。<br>あとは目を閉じて、音に身を任せてね。</p>
+<p class="tag">Suiの囁き声だけで、呼吸からカウントまで。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <div class="wind-row"><label for="language">カウントの言語</label><span class="wind-label">Sui の囁き</span></div>
 <select id="language" aria-label="カウントの言語を選択" class="language-select">
 <option value="japanese">日本語カウント＋日本語の優しい囁き</option>
 <option value="english">英語カウント＋日本語の優しい囁き</option>
 </select>
-<button class="button" type="button" id="play">▶ 最初から再生（呼吸練習あり）</button>
-<button class="button count-start" type="button" id="start100">☾ 100からカウント開始（呼吸練習なし）</button>
+<button class="button" type="button" id="play">▶ 最初から再生（囁きの呼吸練習あり）</button>
+<button class="button count-start" type="button" id="start100">☾ 100から開始（短い案内＋5秒後）</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
 <button class="button secondary" type="button" id="countTest">♫ 囁きと優しい語りをすぐ確認（99から）</button>
 <button class="button secondary" type="button" id="count89Test">♫ 89から日本語の囁きを確認</button>
@@ -60,7 +60,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
 <audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-sui-count100-137"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。日本語カウント版と英語カウント版を選択できます。どちらも数字の間にはSuiの日本語の安心する囁き声が入ります。「100からカウント開始」を押すと、前半の音声テストや呼吸練習を飛ばして数字100から再生できます。100から0の数字はSuiの囁き声で統一。89から0までは日本語ひらがなで新たに録音したSuiの囁き声です。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
+<p class="note">約32分の睡眠誘導です。日本語カウント版と英語カウント版を選択できます。どちらも数字の間にはSuiの日本語の安心する囁き声が入ります。「100から開始」を押すと呼吸練習を飛ばし、Suiが日本語または英語で数えることを囁きます。言い終わってから5秒間静かにして、100からカウントを始めます。冒頭・呼吸練習・自然のイメージ・100から0の数字・数字の間の優しい言葉まで、すべてSuiの囁き声で統一。カウントの言語は日本語または英語を選べます。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -91,7 +91,7 @@ const presetFiles=[
  ["中","sleep-background-wind-10.mp3"],
  ["強","sleep-background-wind-20.mp3"]
 ];
-const audioTag="v=20261108-sui-dual-138";
+const audioTag="v=20261108-full-whisper-139";
 const langKey="akira_sleep_language_v138";
 let countdownLanguage="japanese";
 try{if(localStorage.getItem(langKey)==="english")countdownLanguage="english"}catch(e){}
@@ -196,7 +196,7 @@ windPreview.addEventListener("ended",()=>{
   status.textContent="風の音だけの試聴が終わりました。「再生を続ける」でSuiの睡眠導入を再開できます。";
 });
 const voiceTest=document.getElementById("voiceTest");
-const voiceSample=new Audio("./sui-breath-new-intro.mp3");
+const voiceSample=new Audio("./sui-v139-opening.mp3");
 voiceSample.preload="none";
 const seek=document.getElementById("seek");
 const label=document.getElementById("elapsed");
@@ -219,14 +219,14 @@ start100.addEventListener("click",()=>{
   voiceSample.pause();
   voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";
   audio.pause();
-  const target=COUNTDOWN_START;
+  const target=COUNTDOWN_START-5-(countdownLanguage==="english"?3.36:3.04);
   const seekNow=()=>{
     try{audio.currentTime=Math.min(target,Number.isFinite(audio.duration)?Math.max(0,audio.duration-0.2):target)}catch(e){}
   };
-  audio.addEventListener("loadedmetadata",seekNow,{once:true});
+  if(audio.readyState<1)audio.addEventListener("loadedmetadata",seekNow,{once:true});
   seekNow();
   audio.play().then(()=>{
-    status.textContent="呼吸練習を飛ばして、100からSuiの"+(countdownLanguage==="english"?"英語":"日本語")+"囁きカウントを再生中。";
+    status.textContent="Suiが"+(countdownLanguage==="english"?"英語":"日本語")+"で開始を囁いたあと、5秒静かにして100からカウントします。";
     update();
   }).catch(e=>{
     status.textContent="カウントから再生できませんでした。もう一度ボタンを押してください。詳細："+(e?.message||e);
