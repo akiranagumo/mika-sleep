@@ -1,0 +1,46 @@
+name: Install repaired Sui whisper voice tracks
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-v142.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Japanese-only voiced recordings
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/13zq8zDM4RyqQSU1C65x/o2uerynMjlumL7rdhYRN/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=8pz9kVLZT3tposM-zzREcs0Nwn8=' -o sui-v142-opening.mp3
+          test $(wc -c < sui-v142-opening.mp3) -gt 10000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/zG2xrOY8pABlITA9DJPX/Xw7kUWtMUlK5SQ7WrBAr/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=7Gi8L7LXxzIKznPi1IssXIAMmlQ=' -o sui-v142-breath-guide.mp3
+          test $(wc -c < sui-v142-breath-guide.mp3) -gt 10000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/brn9ZvR6VInTZ9cEIrzY/ilwAVT2rTqQXihyaIqyS/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=Wi3DYzRS9UW5Ub6lQE0tfZmay0A=' -o sui-v142-inhale.mp3
+          test $(wc -c < sui-v142-inhale.mp3) -gt 10000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/jY9oaqPfOBibCsy3T4mJ/pz2UlQoJjpfArlm2CtNe/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=pku6jNFDegAFg7IP43eTGwwxhQY=' -o sui-v142-exhale.mp3
+          test $(wc -c < sui-v142-exhale.mp3) -gt 10000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/2qXmeeelniH7RNw6knnJ/SibGpYpglhZBvtWjVqun/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=45rHUB-yHXuOwaxN_wV3yDn_KP0=' -o sui-v142-repeat.mp3
+          test $(wc -c < sui-v142-repeat.mp3) -gt 10000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/MqgkUdf4XEh2vCZnkoGb/zQDO3e3m54cawHQHcORf/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=qzD1hXj3nUUDnAD-Br6eRfCXfT8=' -o sui-v142-nature.mp3
+          test $(wc -c < sui-v142-nature.mp3) -gt 10000
+      - name: Save recordings for full sleep master
+        run: |
+          set -euo pipefail
+          cp sui-v142-*.mp3 /tmp/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-v142-*.mp3 .
+            git add sui-v142-*.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Install clean spoken-Japanese Sui whispers without voice direction metadata'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
