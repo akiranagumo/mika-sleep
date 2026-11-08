@@ -28,6 +28,8 @@ on:
       - 'sui-japanese-clean101-segments.json'
       - 'sui-english-clean101-segments.json'
       - 'sui-comfort-clean14-segments.json'
+      - 'sui-paused-*.mp3'
+      - 'sui-comfort-atomic-*.mp3'
   workflow_dispatch:
 permissions:
   contents: write
@@ -101,6 +103,11 @@ jobs:
               durations.append(duration)
               print(filename, info['duration'], info['size'], flush=True)
           assert max(durations) - min(durations) < 0.1, durations
+          for lang in ('ja','en'):
+              times=json.load(open(f'sui-master-timing-{lang}.json'))
+              assert len(times)==101 and all(v['n']==100-i for i,v in enumerate(times))
+              assert all(0<=v['start']<v['end']<4.8 for v in times)
+              print(f'Validated 101 actual voice-onset timings for {lang}',flush=True)
           countdowns=['sleep-count-'+lng+'-'+suffix+'.mp3' for lng in ('ja','en')
                       for suffix in ('full','wind-02','wind-05','wind-10','wind-20')]
           for path in countdowns:
@@ -141,7 +148,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/sui-publish
-          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
+          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3 sui-master-timing-ja.json sui-master-timing-en.json /tmp/sui-publish/
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
           # Never try to rebase several independently generated large MP3 commits.
@@ -150,7 +157,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/sui-publish/* .
-            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3
+            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3 sui-master-timing-ja.json sui-master-timing-en.json
             if git diff --cached --quiet; then
               echo 'Audio is already current'
               exit 0
