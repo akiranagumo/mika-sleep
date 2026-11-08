@@ -58,61 +58,11 @@ def main():
     if mode not in ("japanese", "english"):
         raise ValueError("Expected japanese or english rendering mode")
     print(f"Sleep voice mode: {mode}", flush=True)
-    japanese_full = json.loads((ROOT / "sui-japanese-clean101-segments.json").read_text("utf-8"))
-    english_full = json.loads((ROOT / "sui-english-clean101-segments.json").read_text("utf-8"))
-
-
-    if len(japanese_full) != 101 or len(english_full) != 101:
-        raise ValueError("Both Japanese and English require 101 consecutive count segments")
-
-    english_ones = ["zero","one","two","three","four","five","six",
-                    "seven","eight","nine","ten","eleven","twelve",
-                    "thirteen","fourteen","fifteen","sixteen","seventeen",
-                    "eighteen","nineteen"]
-    english_tens = ["","","twenty","thirty","forty","fifty",
-                    "sixty","seventy","eighty","ninety"]
-    def english_number(n):
-        if n == 100:
-            return "one hundred"
-        if n < 20:
-            return english_ones[n]
-        t, u = divmod(n, 10)
-        return english_tens[t] + (" " + english_ones[u] if u else "")
-    previous_end = -1
-    for i, span in enumerate(english_full):
-        number = 100-i
-        if span["n"] != number or span["reading"] != english_number(number):
-            raise ValueError(f"English numeral skipped or mismatched: index {i}, {span}")
-        start, end = float(span["start"]), float(span["end"])
-        if start < previous_end - 0.04 or end <= start or end-start > 3.5:
-            raise ValueError(f"English continuous source order/duration invalid at {number}")
-        previous_end = end
-    print("Validated all 101 consecutive spoken English numbers, 100 through 0", flush=True)
-    comforts = json.loads((ROOT / "sui-comfort-clean14-segments.json").read_text("utf-8"))
-    kana_digits = ["ぜろ","いち","に","さん","よん","ご","ろく","なな","はち","きゅう"]
-    def japanese_number(n):
-        if n == 100:
-            return "ひゃく"
-        if n == 0:
-            return kana_digits[0]
-        if n < 10:
-            return kana_digits[n]
-        tens, ones = divmod(n, 10)
-        return ("" if tens == 1 else kana_digits[tens]) + "じゅう" + (kana_digits[ones] if ones else "")
-    last_end = -1.0
-    for i, w in enumerate(japanese_full):
-        num = 100-i
-        if w["n"] != num or w["reading"] != japanese_number(num):
-            raise ValueError(f"Japanese count omitted or incorrect at {num}")
-        start,end = float(w["start"]),float(w["end"])
-        if start < last_end-0.04 or end <= start or end-start > 3.5:
-            raise ValueError(f"Japanese count overlaps or skips at {num}")
-        last_end=end
-    print("Validated all 101 consecutive spoken Japanese numbers, 100 through 0",flush=True)
-
-    if len(comforts) != 14:
-        raise ValueError("Expected 14 complete Sui comforting whispers")
-    # Use all 14 complete Japanese reassurance phrases; do not truncate.
+    # Each published sound track is ONE fully mastered MP3. Editing of
+    # a spoken word or a comfort phrase is forbidden during playback.
+    # Source count phrases were recorded in ten-word sections WITH real
+    # 1.7-2.5s silent gaps; their safe boundaries are in the silence.
+    # Comfort phrases are complete independent recordings.
     with tempfile.TemporaryDirectory() as tempdir:
         temp = Path(tempdir)
 
@@ -122,12 +72,13 @@ def main():
                 memo[filename] = decode(ROOT / filename)
             return memo[filename]
 
-        japanese_full_audio = asset("sui-japanese-clean101.mp3")
-        english_full_audio = asset("sui-english-clean101.mp3")
-        english_twenty = asset("sui-english-twenty-fix.mp3")
-
-
-        comfort_audio = asset("sui-comfort-clean14.mp3")
+        # Read only the language being mastered; the output is a standalone,
+        # monolithic MP3 for this language and each chosen wind preset.
+        count_lang = "ja" if mode == "japanese" else "en"
+        paused_blocks = [(asset(f"sui-paused-{count_lang}-b{b:02d}.mp3"),
+                          f"sui-paused-{count_lang}-b{b:02d}.mp3") for b in range(11)]
+        comfort_tracks = [asset(f"sui-comfort-atomic-{i:02d}.mp3")
+                          for i in range(14)]
         intro = asset("sui-v142-opening.mp3")
         breath_intro = asset("sui-v142-breath-guide.mp3")
         inhale = asset("sui-v142-inhale.mp3")
@@ -189,90 +140,72 @@ def main():
             mix[at:at + count] += segment
 
 
-        def find_safe_clip_bounds(track, spans, label):
-            """Find QUIET boundary between every adjacent spoken word/phrase.
+        def safe_whole_words(track, filename, count):
+            """Never cut into spoken syllables: split in deep recorded silence.
 
-            Captions are approximate, and hard cuts at their timestamps caused
-            "41 ... t" artifacts and chopped openings like "mou ganbaranakute".
-            This keeps every word separate, searches for the softest acoustic
-            boundary within 55ms, includes onset/tail and uses 10ms fades.
-            There are no repeated TTS [whispering] tags between words in v143.
+            Each sequence has one number then a >=1.7-second naturally
+            silent gap, verified by the acquisition CI job. Unlike subtitle
+            alignment, the midpoint of that silence cannot chop a word.
             """
-            length = len(track)/SR
-            if not spans:
-                raise ValueError("No word timestamps for "+label)
-            boundaries = [max(0.0, float(spans[0]["start"]) - 0.055)]
-            for i in range(len(spans)-1):
-                left, right = spans[i], spans[i+1]
-                mid = (float(left["end"])+float(right["start"]))/2
-                width = 0.055 if label != "comfort" else 0.070
-                # 10ms RMS windows on a 4ms grid, with a modest distance
-                # penalty to avoid picking silence inside a neighboring word.
-                options = np.arange(max(boundaries[-1]+0.15,mid-width),
-                                    min(length-.10,mid+width)+.0001,.004)
-                scores = []
-                for tm in options:
-                    k = round(tm*SR)
-                    part = track[max(0,k-160):min(len(track),k+160)]
-                    value = float(np.sqrt(np.mean(part.astype(np.float64)**2))) if len(part) else 1
-                    scores.append(value + .012*abs(tm-mid)/width)
-                cut = float(options[int(np.argmin(scores))]) if len(options) else mid
-                boundaries.append(cut)
-            boundaries.append(min(length,float(spans[-1]["end"])+.018))
-            clips = [(boundaries[i],boundaries[i+1]) for i in range(len(spans))]
-            if any(b <= a or b-a < .11 or b-a>4.1 for a,b in clips):
-                raise ValueError(f"Corrupt Sui {label} word boundary lengths")
-            print(f"Sui {label}: {len(clips)} acoustic word boundaries verified; "
-                  f"min={min(b-a for a,b in clips):.3f}s, "
-                  f"max={max(b-a for a,b in clips):.3f}s",flush=True)
-            return clips
+            if count==1:
+                return [(0.0,len(track)/SR)]
+            proc=subprocess.run([
+                "ffmpeg","-nostdin","-hide_banner","-i",str(ROOT/filename),
+                "-af","silencedetect=noise=-38dB:d=0.65","-f","null","-",
+            ],capture_output=True,text=True)
+            if proc.returncode!=0:
+                raise ValueError(f"Cannot check Sui silence in {filename}")
+            starts=[float(x) for x in re.findall(r"silence_start:\s*([\d.]+)",proc.stderr)]
+            ends=[float(x) for x in re.findall(r"silence_end:\s*([\d.]+)",proc.stderr)]
+            gaps=[(a,b) for a,b in zip(starts,ends)
+                  if b-a>=1.0 and a>0.10 and b<len(track)/SR-.10]
+            if len(gaps)!=count-1:
+                raise ValueError(f"Expected {count-1} true silent gaps in {filename}, found {len(gaps)}")
+            cuts=[(a+b)*.5 for a,b in gaps]
+            limits=[0.0,*cuts,len(track)/SR]
+            parts=list(zip(limits[:-1],limits[1:]))
+            if any(not (.2<end-start<4.5) for start,end in parts):
+                raise ValueError(f"Invalid Sui whole-word boundaries in {filename}: {parts}")
+            print(f"Verified {count} complete, uncut Sui words in {filename}, "
+                  f"{len(gaps)} real spoken-word silences",flush=True)
+            return parts
 
-        word_bounds = {
-            "japanese": find_safe_clip_bounds(japanese_full_audio,japanese_full,"japanese"),
-            "english": find_safe_clip_bounds(english_full_audio,english_full,"english")
-        }
-        comfort_bounds = find_safe_clip_bounds(comfort_audio,comforts,"comfort")
+        count_clips={}
+        for block,(recording,file) in enumerate(paused_blocks):
+            wanted=min(10,101-block*10)
+            intervals=safe_whole_words(recording,file,wanted)
+            for j,(begin,end) in enumerate(intervals):
+                number=100-block*10-j
+                if number in count_clips:
+                    raise ValueError(f"Duplicate count {number}")
+                count_clips[number]=(recording,begin,end)
+        if sorted(count_clips)!=list(range(101)):
+            raise ValueError("Master audio must include all 101 uncut counts from 100 to 0")
+        print(f"Verified complete 100->0 Sui count, "
+              f"{len(count_clips)} sound intervals from real silent breaks",flush=True)
 
         def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
-            """Read exactly one acoustic word from a continuous clean Sui take."""
-            if not 0 <= number <= 100:
-                raise ValueError(f"Invalid count {number}")
-            lang = language or mode
-            if lang == "english":
-                span, track = english_full[100-number],english_full_audio
-            elif lang == "japanese":
-                span, track = japanese_full[100-number],japanese_full_audio
-            else:
-                raise ValueError(f"Unexpected count language: {lang}")
-            if span["n"] != number:
-                raise ValueError(f"Wrong whisper number: expected {number}")
-            start, end = word_bounds[lang][100-number]
-            duration = end-start
-            # Keep the standalone emergency "twenty" only if the new,
-            # tag-free continuous source is genuinely almost silent.
-            raw_part = track[round(start*SR):round(end*SR)]
-            raw_rms = float(np.sqrt(np.mean(raw_part.astype(np.float64)**2)))
-            if lang=="english" and number==20 and raw_rms<.008:
-                start,end,track=.22,1.12,english_twenty
-                duration=end-start
-            if duration < .11 or duration > 3.5:
-                raise ValueError(f"Invalid Sui count {number}: {duration:.3f}s")
-            add(track, when, start=start, duration=duration,
-                gain=0.92*intensity,target_rms=.075,
-                fade_seconds=.009, audible_count=(language is None))
+            if number not in count_clips:
+                raise ValueError(f"Missing complete Sui spoken count {number}")
+            if language not in (None,mode):
+                raise ValueError("Do not mix different count languages")
+            track,start,end=count_clips[number]
+            add(track,when,start=start,duration=end-start,
+                gain=.90*intensity,target_rms=.072,
+                fade_seconds=.012,audible_count=(language is None))
 
         def comfort_whisper(phrase_idx: int, when: float, intensity: float):
-            """Include the full first and last syllables of EVERY whisper."""
-            idx=phrase_idx%len(comforts)
-            start,end=comfort_bounds[idx]
-            duration=end-start
-            if not 1.5 < duration < 4.1:
-                raise ValueError(f"Invalid complete Sui phrase {idx}: {duration}")
-            if 3.4+duration >= 8.5:
-                raise ValueError(f"Sui phrase overlaps following number: {idx}")
-            add(comfort_audio,when+3.4,start=start,duration=duration,
-                gain=.57*intensity,target_rms=.062,
-                fade_seconds=.010)
+            """Play a complete standalone reassuring sentence, NEVER trim."""
+            idx=phrase_idx%len(comfort_tracks)
+            track=comfort_tracks[idx]
+            duration=len(track)/SR
+            if not 1.6<duration<4.8:
+                raise ValueError(f"Bad full Sui sentence {idx}: {duration:.2f}s")
+            if 3.4+duration>=9.0:
+                raise ValueError(f"Full Sui sentence overlaps next count {idx}")
+            add(track,when+3.4,
+                gain=.60*intensity,target_rms=.07,
+                fade_seconds=.012)
 
         # One consistently whispered Sui voice for the opening, all cues,
         # relaxation, every count and every gentle phrase.
