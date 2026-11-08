@@ -176,8 +176,31 @@ def main():
                   f"{wanted} complete spoken numbers, voice source checked",flush=True)
         if sorted(count_clips)!=list(range(101)):
             raise ValueError("Sui V4 whispered countdown must include every number 100 to 0")
-        print("101 genuine Sui V4 whispered numbers confirmed: "
-              f"{mode}, one completed MP3",flush=True)
+
+        # FIX: in the old ten-number V4 generation, only each block's FIRST
+        # number (100, 90, ..., 0) truly whispered; the next nine fell back
+        # to a monotonous, normal voice. Replace ALL ninety non-decade counts
+        # with their OWN standalone Sui V4 [whispers] recordings.
+        independent=0
+        for number in range(1,100):
+            if number%10==0:
+                continue  # Keep the eleven excellent whispered decades.
+            source=f"sui-single-v4-{count_lang}-{number:03d}.mp3"
+            voice=asset(source)
+            duration=len(voice)/SR
+            if not 0.32 < duration < 3.55:
+                raise ValueError(f"Incomplete Sui whisper source {number}: {duration}")
+            raw=float(np.sqrt(np.mean(np.square(voice, dtype=np.float64))))
+            if raw < .001:
+                raise ValueError(f"Silent independently whispered {number}: {raw:.5f}")
+            # Keep the whole speech file: NO hard syllable cut. A short
+            # leading breath belongs to the voice, not to the next digit.
+            count_clips[number]=(voice,0.0,duration,0.20,max(.45,duration-.03))
+            independent+=1
+        if independent!=90 or sorted(count_clips)!=list(range(101)):
+            raise ValueError(f"Missing independently whispered counts: {independent}")
+        print(f"101 Sui whispers verified for {mode}: "
+              f"90 independent word recordings + 11 whispered decades",flush=True)
 
         timing=[
             {"n":n,"start":round(count_clips[n][3],3),
