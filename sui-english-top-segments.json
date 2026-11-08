@@ -1,0 +1,68 @@
+[
+  {
+    "n": 100,
+    "reading": "one hundred",
+    "start": 0.211,
+    "end": 1.471
+  },
+  {
+    "n": 99,
+    "reading": "ninety nine",
+    "start": 1.811,
+    "end": 3.151
+  },
+  {
+    "n": 98,
+    "reading": "ninety eight",
+    "start": 3.411,
+    "end": 4.751
+  },
+  {
+    "n": 97,
+    "reading": "ninety seven",
+    "start": 5.011,
+    "end": 6.351
+  },
+  {
+    "n": 96,
+    "reading": "ninety six",
+    "start": 6.611,
+    "end": 7.991
+  },
+  {
+    "n": 95,
+    "reading": "ninety five",
+    "start": 8.211,
+    "end": 9.591
+  },
+  {
+    "n": 94,
+    "reading": "ninety four",
+    "start": 9.811,
+    "end": 11.151
+  },
+  {
+    "n": 93,
+    "reading": "ninety three",
+    "start": 11.411,
+    "end": 12.711
+  },
+  {
+    "n": 92,
+    "reading": "ninety two",
+    "start": 12.931,
+    "end": 14.191
+  },
+  {
+    "n": 91,
+    "reading": "ninety one",
+    "start": 14.451,
+    "end": 15.711
+  },
+  {
+    "n": 90,
+    "reading": "ninety",
+    "start": 16.051,
+    "end": 16.8
+  }
+]
