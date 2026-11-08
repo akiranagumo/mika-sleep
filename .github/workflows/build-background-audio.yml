@@ -47,6 +47,25 @@ jobs:
           set -o pipefail
           python scripts/build_background_audio.py japanese 2>&1 | tee build-background-debug.txt
           python scripts/build_background_audio.py english 2>&1 | tee -a build-background-debug.txt
+      - name: Make 100-to-0 countdown-only MP3s without browser seeking
+        run: |
+          set -euo pipefail
+          for language in ja en; do
+            if [ "$language" = ja ]; then
+              prefix=sleep-background
+              output=sleep-count-ja
+            else
+              prefix=sleep-english
+              output=sleep-count-en
+            fi
+            for suffix in full wind-02 wind-05 wind-10 wind-20; do
+              # Keep the first whisper + its five-second silence + all 101
+              # ten-second-spaced numbers. Truncate the long ambient tail.
+              ffmpeg -nostdin -y -hide_banner -loglevel error -ss 300 -t 1011 \
+                -i "${prefix}-${suffix}.mp3" -c:a copy "${output}-${suffix}.mp3"
+              test $(wc -c < "${output}-${suffix}.mp3") -gt 5000000
+            done
+          done
       - name: Produce 8-second wind-only listening samples
         run: |
           set -euo pipefail
@@ -76,6 +95,14 @@ jobs:
               durations.append(duration)
               print(filename, info['duration'], info['size'], flush=True)
           assert max(durations) - min(durations) < 0.1, durations
+          countdowns=['sleep-count-'+lng+'-'+suffix+'.mp3' for lng in ('ja','en')
+                      for suffix in ('full','wind-02','wind-05','wind-10','wind-20')]
+          for path in countdowns:
+              v=json.loads(subprocess.check_output(
+                  ['ffprobe','-v','error','-show_format','-of','json',path]))['format']
+              assert 1000<float(v['duration'])<1020,path
+              assert int(v['size'])>5000000,path
+              print('Countdown MP3',path,v['duration'],flush=True)
           PY
       - name: Verify wind levels are audible and increase monotonically
         run: |
@@ -108,7 +135,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/sui-publish
-          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
+          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
           # Never try to rebase several independently generated large MP3 commits.
@@ -117,7 +144,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/sui-publish/* .
-            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 wind-preview-*.mp3
+            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 sleep-count-ja-*.mp3 sleep-count-en-*.mp3 wind-preview-*.mp3
             if git diff --cached --quiet; then
               echo 'Audio is already current'
               exit 0
