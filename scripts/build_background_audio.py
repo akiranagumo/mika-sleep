@@ -136,6 +136,7 @@ def main():
 
         japanese_full_audio = asset("sui-japanese-full101.mp3")
         english_full_audio = asset("sui-english-full101.mp3")
+        english_twenty = asset("sui-english-twenty-fix.mp3")
 
 
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
@@ -207,6 +208,11 @@ def main():
             lang = language or mode
             if lang == "english":
                 span, track = english_full[100-number], english_full_audio
+                if number == 20:
+                    # Exact number twenty was missing in the one-pass take:
+                    # its PCM had virtually no sustained voiced content.
+                    span = {"n": 20, "start": 0.24, "end": 1.12}
+                    track = english_twenty
             elif lang == "japanese":
                 # The Japanese version also uses a SINGLE verified full take.
                 span, track = japanese_full[100-number], japanese_full_audio
