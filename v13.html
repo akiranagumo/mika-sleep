@@ -35,6 +35,10 @@ a{color:#edd29b;text-underline-offset:3px}.links{display:flex;gap:16px;flex-wrap
 strong{color:#f8e7c0}#audio{color-scheme:dark}
 @media(prefers-reduced-motion:reduce){.moon{animation:none}}
 </style>
+<style>
+/* Hide development-only test controls; retain DOM nodes for existing playback handlers. */
+#voiceTest, #countTest, #count89Test, #back10 { display: none !important; }
+</style>
 </head>
 <body><main>
 <div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.4.7 · JAPANESE / ENGLISH WHISPERS</span></div>
