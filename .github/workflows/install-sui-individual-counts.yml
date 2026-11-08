@@ -1,0 +1,77 @@
+name: Install 180 individually whispered Sui count numerals
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-individual-counts.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MP3 tools
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Download and test all full individual Sui whisper recordings
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import concurrent.futures,json,math,time,subprocess,urllib.request
+          from pathlib import Path
+          from array import array
+          entries=json.loads(Path("sui-single-source-manifest.json").read_text(encoding="utf-8"))
+          expected={(lang,n) for lang in ("ja","en") for n in range(1,100) if n%10}
+          actual={(x["lang"],x["n"]) for x in entries}
+          assert len(entries)==180 and actual==expected, "All 180 non-decade numbers required"
+          def fetch(x):
+              name=f"sui-single-v4-{x['lang']}-{x['n']:03d}.mp3"
+              for attempt in range(4):
+                  try:
+                      req=urllib.request.Request(x["url"],headers={"User-Agent":"AKIRA-SLEEP-SUI"})
+                      with urllib.request.urlopen(req,timeout=65) as r:
+                          Path(name).write_bytes(r.read())
+                      break
+                  except Exception as exc:
+                      print("Retry",name,attempt,str(exc),flush=True)
+                      if attempt==3: raise
+                      time.sleep(2+attempt)
+              assert Path(name).stat().st_size>10000, name
+              pcm=subprocess.check_output([
+                  "ffmpeg","-nostdin","-hide_banner","-loglevel","error",
+                  "-i",name,"-ar","16000","-ac","1","-f","s16le","pipe:1"
+              ],timeout=25)
+              samples=array("h");samples.frombytes(pcm)
+              if len(samples)<4800:
+                  raise ValueError(f"Empty or tiny Sui whisper source: {name}")
+              rms=math.sqrt(sum(v*v for v in samples)/len(samples))/32768
+              duration=len(samples)/16000
+              if not .32<duration<3.55 or rms<.001:
+                  raise ValueError(f"Missing/incomplete Sui count {name}, duration={duration}, rms={rms}")
+              return name,duration,rms
+          with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+              completed=list(pool.map(fetch,entries))
+          assert len(completed)==180
+          print("Verified 180 distinct Sui true-whisper numbers")
+          print("Range of count durations:",min(d for _,d,_ in completed),max(d for _,d,_ in completed))
+          print("Range of RMS:",min(r for _,_,r in completed),max(r for _,_,r in completed))
+          PY
+      - name: Publish 180 whole-word MP3 recordings
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sui-standalone
+          cp sui-single-v4-*.mp3 /tmp/sui-standalone/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-standalone/*.mp3 .
+            git add sui-single-v4-*.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Install all 180 Sui V4 individually whispered Japanese and English numbers'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          exit 1
