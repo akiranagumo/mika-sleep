@@ -92,6 +92,8 @@ def main():
     comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
     kana_digits = ["ぜろ","いち","に","さん","よん","ご","ろく","なな","はち","きゅう"]
     def japanese_number(n):
+        if n == 100:
+            return "ひゃく"
         if n == 0:
             return kana_digits[0]
         if n < 10:
