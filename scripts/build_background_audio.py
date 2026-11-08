@@ -59,14 +59,13 @@ def main():
         raise ValueError("Expected japanese or english rendering mode")
     print(f"Sleep voice mode: {mode}", flush=True)
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
-    new_whispers = json.loads((ROOT / "sui-whisper-japanese-segments.json").read_text("utf-8"))
+    japanese_full = json.loads((ROOT / "sui-japanese-full101-segments.json").read_text("utf-8"))
     english_full = json.loads((ROOT / "sui-english-full101-segments.json").read_text("utf-8"))
-    japanese_top = json.loads((ROOT / "sui-japanese-top-segments.json").read_text("utf-8"))
 
-    if len(japanese_top) != 11 or len(english_full) != 101:
-        raise ValueError("Need Japanese top eleven and complete English 100..0 source")
-    if any(w["n"] != 100-i for i,w in enumerate(japanese_top)):
-        raise ValueError("Japanese top digits are not 100..90")
+
+    if len(japanese_full) != 101 or len(english_full) != 101:
+        raise ValueError("Both Japanese and English require 101 consecutive count segments")
+
     english_ones = ["zero","one","two","three","four","five","six",
                     "seven","eight","nine","ten","eleven","twelve",
                     "thirteen","fourteen","fifteen","sixteen","seventeen",
@@ -101,9 +100,16 @@ def main():
             return kana_digits[n]
         tens, ones = divmod(n, 10)
         return ("" if tens == 1 else kana_digits[tens]) + "じゅう" + (kana_digits[ones] if ones else "")
-    for w in new_whispers:
-        if w["reading"] != japanese_number(w["n"]):
-            raise ValueError(f"English/mismatched count prevented: {w['n']}, {w['reading']}")
+    last_end = -1.0
+    for i, w in enumerate(japanese_full):
+        num = 100-i
+        if w["n"] != num or w["reading"] != japanese_number(num):
+            raise ValueError(f"Japanese count omitted or incorrect at {num}")
+        start,end = float(w["start"]),float(w["end"])
+        if start < last_end-0.04 or end <= start or end-start > 3.5:
+            raise ValueError(f"Japanese count overlaps or skips at {num}")
+        last_end=end
+    print("Validated all 101 consecutive spoken Japanese numbers, 100 through 0",flush=True)
 
     if len(comforts) != 14:
         raise ValueError("Expected 14 Sui whispered relaxation phrases")
@@ -128,9 +134,9 @@ def main():
                 memo[filename] = decode(ROOT / filename)
             return memo[filename]
 
-        new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
+        japanese_full_audio = asset("sui-japanese-full101.mp3")
         english_full_audio = asset("sui-english-full101.mp3")
-        japanese_top_audio = asset("sui-japanese-top.mp3")
+
 
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
         intro = asset("sui-v139-opening.mp3")
@@ -180,18 +186,17 @@ def main():
                 raise ValueError(f"Invalid count {number}")
             lang = language or mode
             if lang == "english":
-                # ALL 101 numbers are drawn from ONE continuous Sui recording;
-                # never splice in the former 89..0 source which caused jumps.
                 span, track = english_full[100-number], english_full_audio
-            elif number >= 90:
-                span, track = japanese_top[100-number], japanese_top_audio
+            elif lang == "japanese":
+                # The Japanese version also uses a SINGLE verified full take.
+                span, track = japanese_full[100-number], japanese_full_audio
             else:
-                span, track = new_whispers[89-number], new_whisper_audio
+                raise ValueError(f"Unexpected count language: {lang}")
             if span["n"] != number:
                 raise ValueError(f"Wrong whisper number: expected {number}")
             start = float(span["start"])
             duration = float(span["end"]) - start
-            if duration < 0.30 or duration > 3.5:
+            if duration < 0.06 or duration > 3.5:
                 raise ValueError(f"Invalid Sui whisper {number} ({duration:.3f}s)")
             add(track, when, start=start, duration=duration,
                 gain=0.92 * intensity, target_rms=0.075,
