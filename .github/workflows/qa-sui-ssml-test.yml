@@ -1,4 +1,4 @@
-name: Validate native SSML silence without cutting words
+name: Validate 10-number block SSML silence without cutting words
 on:
   push:
     paths: ['.github/workflows/qa-sui-ssml-test.yml']
@@ -12,6 +12,6 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y ffmpeg
-          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/9IdhzMdWWrusVoJfbI5v/BG7PhuUEqyy7Q62CP81g/content.mp3?Expires=1794121200&KeyName=assets-cdn-key-1&Signature=AEJniuMeh_6RAMePv0rQ4knGfek=' -o /tmp/test-sui-ssml.mp3
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/zRqhKBAwAc9RcnTdua6a/V3rby0SP5bEtsghoI9zo/content.mp3?Expires=1794121200&KeyName=assets-cdn-key-1&Signature=jgnPluLSLF3zwn2o1LkZy6-QygY=' -o /tmp/test-sui-ssml.mp3
           ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 /tmp/test-sui-ssml.mp3
           ffmpeg -hide_banner -i /tmp/test-sui-ssml.mp3 -af silencedetect=noise=-38dB:d=0.55 -f null - 2>&1 | grep -E 'silence_start|silence_end' || true
