@@ -1,21 +1,9 @@
-[in#0 @ 0x5a05d5837c40] Error opening input: No such file or directory
-Error opening input file /home/runner/work/mika-sleep/mika-sleep/sui-count-whisper-japanese.mp3.
-Error opening input files: No such file or directory
+Sleep voice mode: japanese
+Validated all 101 consecutive spoken English numbers, 100 through 0
 Traceback (most recent call last):
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 285, in <module>
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 332, in <module>
     main()
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 111, in main
-    new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 107, in asset
-    memo[filename] = decode(ROOT / filename)
-                     ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 38, in decode
-    raw = subprocess.check_output([
-          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 466, in check_output
-    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-i', '/home/runner/work/mika-sleep/mika-sleep/sui-count-whisper-japanese.mp3', '-ac', '1', '-ar', '32000', '-f', 'f32le', 'pipe:1']' returned non-zero exit status 254.
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 93, in main
+    if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
+           ^^^^^^^^^^^^
+NameError: name 'new_whispers' is not defined
