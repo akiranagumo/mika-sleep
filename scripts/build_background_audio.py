@@ -173,7 +173,7 @@ def main():
                 # to be almost inaudible, despite passing metadata checks.
                 # Normalize each full spoken number and gently soft-limit its
                 # peaks, preserving the breathy quality without hard clipping.
-                boost = min(30.0, max(1.0, 0.105 / max(rms, 0.0015)))
+                boost = min(450.0, max(1.0, 0.105 / max(rms, 0.0001)))
                 processed = 0.55 * np.tanh((part * boost) / 0.55)
                 # Small Japanese syllables like 'に' only last ~0.09s.
                 # Their edges need shorter fades to remain intelligible.
@@ -195,7 +195,7 @@ def main():
             if audible_count:
                 actual_rms = float(np.sqrt(np.mean(np.square(segment, dtype=np.float64))))
                 if actual_rms < 0.020:
-                    raise ValueError(f"Sui number at {when:.1f}s was inaudible: {actual_rms:.5f}")
+                    raise ValueError(f"Sui number at {when:.1f}s was inaudible: output={actual_rms:.5f}, raw={rms:.6f}, boost={boost:.1f}, duration={count/SR:.3f}")
                 count_checkpoints.append((int(round((when-count_start)/10)), actual_rms))
             mix[at:at + count] += segment
 
