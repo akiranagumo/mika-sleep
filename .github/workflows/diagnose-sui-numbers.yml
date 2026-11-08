@@ -12,16 +12,19 @@ jobs:
       - name: Diagnose raw Sui digits
         run: |
           python - <<'PY'
-          import audioop,json,subprocess
+          import json,subprocess,math
+          from array import array
           for lang in ('english','japanese'):
               path='sui-'+lang+'-full101.mp3'
               meta=json.load(open('sui-'+lang+'-full101-segments.json'))
               wav=subprocess.check_output(['ffmpeg','-hide_banner','-loglevel','error','-i',path,'-ac','1','-ar','32000','-f','s16le','pipe:1'])
+              samples=array('h')
+              samples.frombytes(wav)
               stats=[]
               for row in meta:
                   start,end=row['start'],row['end']
-                  chunk=wav[int(32000*start)*2:int(32000*end)*2]
-                  rms=audioop.rms(chunk,2)/32768 if chunk else 0
+                  chunk=samples[int(32000*start):int(32000*end)]
+                  rms=(math.sqrt(sum(x*x for x in chunk)/len(chunk))/32768) if chunk else 0
                   stats.append((row['n'],row['reading'],round(rms,6),round(end-start,3)))
               print('Language:',lang,flush=True)
               print('LOWEST 35:',sorted(stats,key=lambda x:x[2])[:35],flush=True)
