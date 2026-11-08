@@ -11,6 +11,10 @@ on:
       - 'sui-whisper-japanese-segments.json'
       - 'sui-comfort-whispers-v2.mp3'
       - 'sui-comfort-whispers-v2-segments.json'
+      - 'sui-japanese-top.mp3'
+      - 'sui-english-top.mp3'
+      - 'sui-japanese-top-segments.json'
+      - 'sui-english-top-segments.json'
   workflow_dispatch:
 permissions:
   contents: write
@@ -34,7 +38,8 @@ jobs:
       - name: Render full 32-minute background playback file
         run: |
           set -o pipefail
-          python scripts/build_background_audio.py 2>&1 | tee build-background-debug.txt
+          python scripts/build_background_audio.py japanese 2>&1 | tee build-background-debug.txt
+          python scripts/build_background_audio.py english 2>&1 | tee -a build-background-debug.txt
       - name: Produce 8-second wind-only listening samples
         run: |
           set -euo pipefail
@@ -50,7 +55,10 @@ jobs:
           import json, subprocess
           paths = ['sleep-background-full.mp3','sleep-background-wind-02.mp3',
                    'sleep-background-wind-05.mp3','sleep-background-wind-10.mp3',
-                   'sleep-background-wind-20.mp3']
+                   'sleep-background-wind-20.mp3',
+                   'sleep-english-full.mp3','sleep-english-wind-02.mp3',
+                   'sleep-english-wind-05.mp3','sleep-english-wind-10.mp3',
+                   'sleep-english-wind-20.mp3']
           durations = []
           for filename in paths:
               info = json.loads(subprocess.check_output(
@@ -93,7 +101,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/sui-publish
-          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
+          cp sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 wind-preview-*.mp3 /tmp/sui-publish/
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config user.name 'github-actions[bot]'
           # Never try to rebase several independently generated large MP3 commits.
@@ -102,12 +110,12 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/sui-publish/* .
-            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 wind-preview-*.mp3
+            git add sleep-background-full.mp3 sleep-background-wind-*.mp3 sleep-english-full.mp3 sleep-english-wind-*.mp3 wind-preview-*.mp3
             if git diff --cached --quiet; then
               echo 'Audio is already current'
               exit 0
             fi
-            git commit -m 'Publish audible Sui wind controls and isolated previews'
+            git commit -m 'Publish both Sui Japanese and English countdown modes with adjustable wind'
             if git push origin HEAD:main; then
               echo 'Sui wind files successfully published'
               exit 0
