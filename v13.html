@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.4.2</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.4.3</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -37,7 +37,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.4.2 · JAPANESE / ENGLISH WHISPERS</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.4.3 · JAPANESE / ENGLISH WHISPERS</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
 <p class="tag">Suiの囁き声だけで、呼吸からカウントまで。<br>あとは目を閉じて、音に身を任せてね。</p>
@@ -60,7 +60,7 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <div class="phase" id="phase">現在：冒頭・呼吸・リラックス</div>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-count-restored-142"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-clean-all-143"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
 <p class="note">約32分の睡眠誘導です。日本語カウント版と英語カウント版を選択できます。どちらも数字の間にはSuiの日本語の安心する囁き声が入ります。「100から開始」を押すと専用のカウント音声を最初から再生します。iPhoneで再生位置の移動が失敗してカウントが聞こえない問題を防ぎます。Suiが日本語または英語で数えることを囁きます。言い終わってから5秒間静かにして、100からカウントを始めます。冒頭・呼吸練習・自然のイメージ・100から0の数字・数字の間の優しい言葉まで、すべてSuiの囁き声で統一。カウントの言語は日本語または英語を選べます。日本語版も英語版も100から0までの101個を一度に録音し、全数字の並びを検証したSuiの囁き声です。数字の間の安心する言葉は日本語のままです。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
@@ -93,7 +93,15 @@ const presetFiles=[
  ["中","sleep-background-wind-10.mp3"],
  ["強","sleep-background-wind-20.mp3"]
 ];
-const audioTag="v=20261108-count-restored-142";
+const audioTag="v=20261108-clean-all-143";
+const WORD_LENGTHS={japanese:null,english:null};
+for(const lang of ["japanese","english"]){
+  fetch("./sui-"+lang+"-clean101-segments.json?"+audioTag)
+    .then(r=>{if(!r.ok)throw new Error("timings not found");return r.json()})
+    .then(a=>{if(Array.isArray(a)&&a.length===101)WORD_LENGTHS[lang]=a.map(x=>x.end-x.start)})
+    .catch(()=>{});
+}
+
 const langKey="akira_sleep_language_v138";
 let countdownLanguage="japanese";
 try{if(localStorage.getItem(langKey)==="english")countdownLanguage="english"}catch(e){}
@@ -215,10 +223,26 @@ let seeking=false;
 const fmt=v=>{v=Math.max(0,Math.floor(Number(v)||0));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
 function update(){const duration=Number.isFinite(audio.duration)?audio.duration:0;
  const masterTime=audio.currentTime+(playbackMode==="count"?300:0);
- if(masterTime<300)phase.textContent="現在：冒頭・呼吸・リラックス";
- else if(masterTime<308.8)phase.textContent="現在：カウント開始の囁きと5秒の静かな間";
- else if(masterTime<1319)phase.textContent="現在：100→0のカウント／数字 "+Math.max(0,100-Math.floor((masterTime-308.8)/10));
- else phase.textContent="現在：静かな余韻";
+ if(masterTime<300)phase.textContent="現在：冒頭・呼吸練習・リラックス";
+ else if(masterTime<308.8)phase.textContent="現在：Suiの短い案内と、5秒の静かな間";
+ else if(masterTime<1318.8){
+   const elapsed=masterTime-308.8;
+   const index=Math.min(100,Math.max(0,Math.floor((elapsed+0.012)/10)));
+   const count=100-index;
+   const within=elapsed-index*10;
+   const spokenDuration=WORD_LENGTHS[countdownLanguage]?.[index]??1.8;
+   const voiceEnds=Math.min(3.3,Math.max(.65,spokenDuration+.08));
+   const withComfort=(index<30 && index%2===1) ||
+       (index>=30 && index<70 && index%3===1) ||
+       (index>=70 && index%4===1);
+   if(within<voiceEnds && within>=-.03)
+     phase.textContent="Suiが数えている数字： "+count+
+       (countdownLanguage==="english"?"（英語）":"（日本語）");
+   else if(withComfort && within>=3.35 && within<7.9)
+     phase.textContent="現在：数字の間の、やさしい日本語の囁き";
+   else
+     phase.textContent="静かな間… 次の数字は "+Math.max(0,count-1);
+ }else phase.textContent="現在：静かな余韻";
 
  if(!seeking)seek.value=duration?String(Math.round(1000*audio.currentTime/duration)):"0";
  label.textContent=fmt(audio.currentTime)+" / "+(duration?fmt(duration):"約32分");
