@@ -20,6 +20,8 @@ on:
       - 'sui-count-intro-en.mp3'
       - 'sui-english-full101.mp3'
       - 'sui-english-full101-segments.json'
+      - 'sui-japanese-full101.mp3'
+      - 'sui-japanese-full101-segments.json'
   workflow_dispatch:
 permissions:
   contents: write
