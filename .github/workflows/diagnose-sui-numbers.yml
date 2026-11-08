@@ -27,8 +27,21 @@ jobs:
                   start,end=row['start'],row['end']
                   chunk=samples[int(32000*start):int(32000*end)]
                   rms=(math.sqrt(sum(x*x for x in chunk)/len(chunk))/32768) if chunk else 0
-                  stats.append((row['n'],row['reading'],round(rms,6),round(end-start,3)))
+                  # Mirror the count loudness soft-limiter to detect audio
+                  # with almost no real voice despite nonzero peak RMS.
+                  i=100-row['n']
+                  intensity=1.0-.18*(i/100)**1.25
+                  boost=min(450.0,max(1.0,.105/max(rms,.0001)))
+                  fade=min(.04,max(.009,(end-start)*.12))
+                  total=0.0
+                  for j,pcm in enumerate(chunk):
+                      when=j/32000
+                      edge=min(1.0,when/fade,(end-start-when)/fade)
+                      sample=.55*math.tanh((pcm/32768*boost)/.55)*(.85*.92*intensity)*max(0,edge)
+                      total+=sample*sample
+                  adjusted=math.sqrt(total/len(chunk)) if chunk else 0
+                  stats.append((row['n'],row['reading'],round(rms,6),round(adjusted,6),round(end-start,3)))
               print('Language:',lang,flush=True)
               print('LOWEST 35:',sorted(stats,key=lambda x:x[2])[:35],flush=True)
-              print('COUNT BELOW .003:',[row for row in stats if row[2]<.003],flush=True)
+              print('COUNT OUTPUT BELOW .020:',[row for row in stats if row[3]<.020],flush=True)
           PY
