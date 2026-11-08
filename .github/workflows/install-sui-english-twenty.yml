@@ -1,0 +1,34 @@
+name: Install repaired audible Sui English twenty
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-english-twenty.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get whispered numeral twenty
+        run: |
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/rFpRYXthY4vC2sgveYNo/eDtrhsGx3wRJIQuuOWJS/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=tz7GUR9Pj2Nbzkm7H7T9fu1SNOU=' -o sui-english-twenty-fix.mp3
+          test $(wc -c < sui-english-twenty-fix.mp3) -gt 10000
+      - name: Publish replacement count clip
+        run: |
+          set -euo pipefail
+          cp sui-english-twenty-fix.mp3 /tmp/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-english-twenty-fix.mp3 .
+            git add sui-english-twenty-fix.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Replace inaudible English twenty in Sui count'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          exit 1
