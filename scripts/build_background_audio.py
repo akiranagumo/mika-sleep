@@ -134,7 +134,7 @@ def main():
             segment = processed * levels
             if audible_count:
                 actual_rms = float(np.sqrt(np.mean(np.square(segment, dtype=np.float64))))
-                if actual_rms < 0.020:
+                if actual_rms < 0.012:
                     raise ValueError(f"Sui number at {when:.1f}s was inaudible: output={actual_rms:.5f}, raw={rms:.6f}, boost={boost:.1f}, duration={count/SR:.3f}")
                 count_checkpoints.append((int(round((when-count_start)/10)), actual_rms))
             mix[at:at + count] += segment
@@ -206,8 +206,13 @@ def main():
             if language not in (None,mode):
                 raise ValueError("Do not mix different count languages")
             track,start,end,voice_begin,voice_end=count_clips[number]
+            # Sleep-first mix: counts must sit BELOW the reassuring speech,
+            # not jump forward like an announcer. -6.6 dB at 100, then
+            # another -1.9 dB by zero. Keep comfort sentences unchanged.
+            progress=(100-number)/100
+            extra_fade=1.0-0.20*progress**1.20
             add(track,when,start=start,duration=end-start,
-                gain=.90*intensity,target_rms=.072,
+                gain=.42*intensity*extra_fade,target_rms=.072,
                 fade_seconds=.012,audible_count=(language is None))
 
         def comfort_whisper(phrase_idx: int, when: float, intensity: float):
@@ -273,7 +278,7 @@ def main():
             raise RuntimeError(f"Missing audible Sui numbers: {len(count_checkpoints)} / 101")
         if [i for i, level in count_checkpoints] != list(range(101)):
             raise RuntimeError("Count sequence skipped or reordered in the final master")
-        print("101 audible Sui spoken count events, min RMS={:.4f}, max RMS={:.4f}".format(
+        print("101 audible Sui spoken count events (quiet mix), min RMS={:.4f}, max RMS={:.4f}".format(
             min(level for _,level in count_checkpoints),
             max(level for _,level in count_checkpoints)), flush=True)
         print(f"Whisper QA: 101 full Sui whisper counts, "
