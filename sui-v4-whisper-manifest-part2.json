@@ -1,0 +1,438 @@
+[
+  {
+    "lang": "ja",
+    "block": 8,
+    "first": 20,
+    "last": 11,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/sMu8QYQGtgUSwqNxP8Wz/sjiuSs0fMulpiaFfRT38/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=XpFGB8G0J2MoVt92lemcRkesV3M=",
+    "duration": 16.08,
+    "clips": [
+      {
+        "n": 20,
+        "reading": "にじゅう",
+        "start": 0.41,
+        "end": 1.815
+      },
+      {
+        "n": 19,
+        "reading": "じゅうきゅう",
+        "start": 2.307,
+        "end": 4.125
+      },
+      {
+        "n": 18,
+        "reading": "じゅうはち",
+        "start": 4.11,
+        "end": 5.913
+      },
+      {
+        "n": 17,
+        "reading": "じゅうなな",
+        "start": 5.912,
+        "end": 7.515
+      },
+      {
+        "n": 16,
+        "reading": "じゅうろく",
+        "start": 7.53,
+        "end": 9.245
+      },
+      {
+        "n": 15,
+        "reading": "じゅうご",
+        "start": 9.23,
+        "end": 10.685
+      },
+      {
+        "n": 14,
+        "reading": "じゅうよん",
+        "start": 10.67,
+        "end": 12.205
+      },
+      {
+        "n": 13,
+        "reading": "じゅうさん",
+        "start": 12.19,
+        "end": 13.725
+      },
+      {
+        "n": 12,
+        "reading": "じゅうに",
+        "start": 13.71,
+        "end": 15.165
+      },
+      {
+        "n": 11,
+        "reading": "じゅういち",
+        "start": 15.15,
+        "end": 16.08
+      }
+    ]
+  },
+  {
+    "lang": "ja",
+    "block": 9,
+    "first": 10,
+    "last": 1,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/gh0cHYk0g1AotSMuZylT/q4NJ7WSMFrffcLswvrFB/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=gb1BkkPtT_dBCSHOmvW5AC135OQ=",
+    "duration": 14.64,
+    "clips": [
+      {
+        "n": 10,
+        "reading": "じゅう",
+        "start": 0.25,
+        "end": 1.815
+      },
+      {
+        "n": 9,
+        "reading": "きゅう",
+        "start": 2.25,
+        "end": 4.045
+      },
+      {
+        "n": 8,
+        "reading": "はち",
+        "start": 4.03,
+        "end": 5.645
+      },
+      {
+        "n": 7,
+        "reading": "なな",
+        "start": 5.63,
+        "end": 7.085
+      },
+      {
+        "n": 6,
+        "reading": "ろく",
+        "start": 7.07,
+        "end": 8.605
+      },
+      {
+        "n": 5,
+        "reading": "ご",
+        "start": 8.59,
+        "end": 9.885
+      },
+      {
+        "n": 4,
+        "reading": "よん",
+        "start": 9.87,
+        "end": 11.325
+      },
+      {
+        "n": 3,
+        "reading": "さん",
+        "start": 11.31,
+        "end": 12.715
+      },
+      {
+        "n": 2,
+        "reading": "に",
+        "start": 12.73,
+        "end": 14.108
+      },
+      {
+        "n": 1,
+        "reading": "いち",
+        "start": 14.357,
+        "end": 14.64
+      }
+    ]
+  },
+  {
+    "lang": "ja",
+    "block": 10,
+    "first": 0,
+    "last": 0,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/tXsaKfNY139SFG7CIbxP/kqoOaBsb5LqYMnhw91WK/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=qI_Bn4bQ5Jjo4li3UpScLwC8Lqk=",
+    "duration": 1.52,
+    "clips": [
+      {
+        "n": 0,
+        "reading": "ぜろ",
+        "start": 0.41,
+        "end": 1.52
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "block": 1,
+    "first": 90,
+    "last": 81,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/I5T6bCHxgjUHv4lJdSIz/QDjZ0163jaMivnUeclhy/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=ec3HbzFxO5z3yc78ZAJN3fpmuWE=",
+    "duration": 18.72,
+    "clips": [
+      {
+        "n": 90,
+        "reading": "ninety",
+        "start": 0.25,
+        "end": 1.655
+      },
+      {
+        "n": 89,
+        "reading": "eighty nine",
+        "start": 2.09,
+        "end": 3.695
+      },
+      {
+        "n": 88,
+        "reading": "eighty eight",
+        "start": 4.17,
+        "end": 5.615
+      },
+      {
+        "n": 87,
+        "reading": "eighty seven",
+        "start": 6.09,
+        "end": 7.615
+      },
+      {
+        "n": 86,
+        "reading": "eighty six",
+        "start": 8.09,
+        "end": 9.655
+      },
+      {
+        "n": 85,
+        "reading": "eighty five",
+        "start": 10.09,
+        "end": 11.655
+      },
+      {
+        "n": 84,
+        "reading": "eighty four",
+        "start": 12.09,
+        "end": 13.575
+      },
+      {
+        "n": 83,
+        "reading": "eighty three",
+        "start": 14.01,
+        "end": 15.495
+      },
+      {
+        "n": 82,
+        "reading": "eighty two",
+        "start": 15.93,
+        "end": 17.335
+      },
+      {
+        "n": 81,
+        "reading": "eighty one",
+        "start": 17.77,
+        "end": 18.72
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "block": 2,
+    "first": 80,
+    "last": 71,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/CGeCFvK7qNHRtJbD0qPl/M5j6g1PK2Mw9v0zKkoaq/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=O7GH39-Gf2WWLo0wrmuQ0JB1NeI=",
+    "duration": 20.08,
+    "clips": [
+      {
+        "n": 80,
+        "reading": "eighty",
+        "start": 0.09,
+        "end": 1.455
+      },
+      {
+        "n": 79,
+        "reading": "seventy nine",
+        "start": 2.01,
+        "end": 3.295
+      },
+      {
+        "n": 78,
+        "reading": "seventy eight",
+        "start": 4.41,
+        "end": 6.055
+      },
+      {
+        "n": 77,
+        "reading": "seventy seven",
+        "start": 6.49,
+        "end": 7.775
+      },
+      {
+        "n": 76,
+        "reading": "seventy six",
+        "start": 8.57,
+        "end": 9.935
+      },
+      {
+        "n": 75,
+        "reading": "seventy five",
+        "start": 10.81,
+        "end": 12.095
+      },
+      {
+        "n": 74,
+        "reading": "seventy four",
+        "start": 12.97,
+        "end": 14.215
+      },
+      {
+        "n": 73,
+        "reading": "seventy three",
+        "start": 15.05,
+        "end": 16.615
+      },
+      {
+        "n": 72,
+        "reading": "seventy two",
+        "start": 17.107,
+        "end": 18.175
+      },
+      {
+        "n": 71,
+        "reading": "seventy one",
+        "start": 18.97,
+        "end": 20.08
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "block": 3,
+    "first": 70,
+    "last": 61,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/wlN3YYKG4X7SOFRPrR4e/YUc412JV4Kh3MolrqPVU/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=7Pcy-6XZ9aBfFzlLANtzTWgIJY4=",
+    "duration": 21.84,
+    "clips": [
+      {
+        "n": 70,
+        "reading": "seventy",
+        "start": 0.25,
+        "end": 1.415
+      },
+      {
+        "n": 69,
+        "reading": "sixty nine",
+        "start": 2.41,
+        "end": 3.735
+      },
+      {
+        "n": 68,
+        "reading": "sixty eight",
+        "start": 4.81,
+        "end": 6.055
+      },
+      {
+        "n": 67,
+        "reading": "sixty seven",
+        "start": 7.13,
+        "end": 8.375
+      },
+      {
+        "n": 66,
+        "reading": "sixty six",
+        "start": 9.49,
+        "end": 10.775
+      },
+      {
+        "n": 65,
+        "reading": "sixty five",
+        "start": 11.81,
+        "end": 13.095
+      },
+      {
+        "n": 64,
+        "reading": "sixty four",
+        "start": 14.13,
+        "end": 15.335
+      },
+      {
+        "n": 63,
+        "reading": "sixty three",
+        "start": 16.33,
+        "end": 17.575
+      },
+      {
+        "n": 62,
+        "reading": "sixty two",
+        "start": 18.65,
+        "end": 19.735
+      },
+      {
+        "n": 61,
+        "reading": "sixty one",
+        "start": 20.73,
+        "end": 21.84
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "block": 4,
+    "first": 60,
+    "last": 51,
+    "url": "https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/461D17IrWYmpOUx4i9Mm/6VIrusUItFrZgdgH4sTL/content.mp3?Expires=1794124800&KeyName=assets-cdn-key-1&Signature=WPLil2-qerH8BpU9qbs0Btjdsg8=",
+    "duration": 19.04,
+    "clips": [
+      {
+        "n": 60,
+        "reading": "sixty",
+        "start": 0.25,
+        "end": 1.695
+      },
+      {
+        "n": 59,
+        "reading": "fifty nine",
+        "start": 2.25,
+        "end": 3.775
+      },
+      {
+        "n": 58,
+        "reading": "fifty eight",
+        "start": 4.17,
+        "end": 5.735
+      },
+      {
+        "n": 57,
+        "reading": "fifty seven",
+        "start": 6.17,
+        "end": 7.735
+      },
+      {
+        "n": 56,
+        "reading": "fifty six",
+        "start": 8.159,
+        "end": 9.775
+      },
+      {
+        "n": 55,
+        "reading": "fifty five",
+        "start": 10.159,
+        "end": 11.735
+      },
+      {
+        "n": 54,
+        "reading": "fifty four",
+        "start": 12.17,
+        "end": 13.735
+      },
+      {
+        "n": 53,
+        "reading": "fifty three",
+        "start": 14.159,
+        "end": 15.695
+      },
+      {
+        "n": 52,
+        "reading": "fifty two",
+        "start": 16.159,
+        "end": 17.615
+      },
+      {
+        "n": 51,
+        "reading": "fifty one",
+        "start": 18.01,
+        "end": 19.04
+      }
+    ]
+  }
+]
