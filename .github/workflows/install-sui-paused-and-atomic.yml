@@ -1,0 +1,83 @@
+name: Install full-word Sui sleep narration blocks
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-paused-and-atomic.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install audio inspection tool
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Download each source with verified real speech pauses
+        run: |
+          python - <<'PY'
+          import json,re,subprocess,time,urllib.request
+          from pathlib import Path
+          all_blocks=[]
+          for part in (1,2,3):
+              all_blocks.extend(json.loads(Path(f'sui-paused-block-urls-part{part}.json').read_text()))
+          all_blocks.append(dict(lang='ja',block=3,first=70,last=61,
+             url='https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/zRqhKBAwAc9RcnTdua6a/V3rby0SP5bEtsghoI9zo/content.mp3?Expires=1794121200&KeyName=assets-cdn-key-1&Signature=jgnPluLSLF3zwn2o1LkZy6-QygY='))
+          assert len(all_blocks)==22
+          assert set((x['lang'],x['block']) for x in all_blocks)==set((lng,i) for lng in ('ja','en') for i in range(11))
+          phrase_urls=json.loads(Path('audio-atomic-comfort-urls.json').read_text())
+          assert len(phrase_urls)==14
+          def download(url,path):
+              for attempt in range(4):
+                  try:
+                      with urllib.request.urlopen(url,timeout=35) as r:
+                          Path(path).write_bytes(r.read())
+                      return
+                  except Exception as e:
+                      print('Retry',attempt,path,str(e),flush=True)
+                      if attempt==3:raise
+                      time.sleep(2+attempt)
+          for x in all_blocks:
+              file=f"sui-paused-{x['lang']}-b{x['block']:02d}.mp3"
+              download(x['url'],file)
+              assert Path(file).stat().st_size>10000, file
+              expected=x['first']-x['last']+1
+              if expected==1:continue
+              p=subprocess.run(['ffmpeg','-hide_banner','-i',file,
+                  '-af','silencedetect=noise=-38dB:d=0.65','-f','null','-'],
+                  capture_output=True,text=True)
+              starts=[float(n) for n in re.findall(r'silence_start:\s*([\d.]+)',p.stderr)]
+              ends=[float(n) for n in re.findall(r'silence_end:\s*([\d.]+)',p.stderr)]
+              lengths=[b-a for a,b in zip(starts,ends)]
+              print(file,'expected',expected-1,'gaps',len(lengths),'lengths',lengths,flush=True)
+              if len(lengths)<expected-1 or len([n for n in lengths if n>=1.0])<expected-1:
+                  raise ValueError(f'Insufficient true silence between Sui spoken numbers: {file}: {lengths}')
+          for x in phrase_urls:
+              file=f"sui-comfort-atomic-{x['index']:02d}.mp3"
+              download(x['url'],file)
+              assert Path(file).stat().st_size>10000, file
+              v=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_format','-of','json',file]))['format']
+              duration=float(v['duration'])
+              assert 1.6<duration<4.8,(file,duration)
+              print(file,'complete single-sentence duration',duration,flush=True)
+          print('Downloaded 22 full-word count blocks and 14 self-contained comforting whispers',flush=True)
+          PY
+      - name: Commit final source assets without clipped syllables
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sui-atomic
+          cp sui-paused-*.mp3 sui-comfort-atomic-*.mp3 /tmp/sui-atomic/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-atomic/*.mp3 .
+            git add sui-paused-*.mp3 sui-comfort-atomic-*.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Store 22 Sui count blocks with natural silence and 14 whole-sentence whispers'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
