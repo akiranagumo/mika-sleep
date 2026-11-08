@@ -1,0 +1,608 @@
+[
+  {
+    "n": 100,
+    "reading": "one hundred",
+    "start": 0.24,
+    "end": 1.36
+  },
+  {
+    "n": 99,
+    "reading": "ninety nine",
+    "start": 1.68,
+    "end": 3.04
+  },
+  {
+    "n": 98,
+    "reading": "ninety eight",
+    "start": 3.12,
+    "end": 4.48
+  },
+  {
+    "n": 97,
+    "reading": "ninety seven",
+    "start": 4.56,
+    "end": 5.92
+  },
+  {
+    "n": 96,
+    "reading": "ninety six",
+    "start": 6,
+    "end": 7.44
+  },
+  {
+    "n": 95,
+    "reading": "ninety five",
+    "start": 7.52,
+    "end": 8.88
+  },
+  {
+    "n": 94,
+    "reading": "ninety four",
+    "start": 8.96,
+    "end": 10.24
+  },
+  {
+    "n": 93,
+    "reading": "ninety three",
+    "start": 10.32,
+    "end": 11.6
+  },
+  {
+    "n": 92,
+    "reading": "ninety two",
+    "start": 11.68,
+    "end": 12.96
+  },
+  {
+    "n": 91,
+    "reading": "ninety one",
+    "start": 13,
+    "end": 14.24
+  },
+  {
+    "n": 90,
+    "reading": "ninety",
+    "start": 14.32,
+    "end": 15.28
+  },
+  {
+    "n": 89,
+    "reading": "eighty nine",
+    "start": 15.36,
+    "end": 16.48
+  },
+  {
+    "n": 88,
+    "reading": "eighty eight",
+    "start": 16.56,
+    "end": 17.68
+  },
+  {
+    "n": 87,
+    "reading": "eighty seven",
+    "start": 17.8,
+    "end": 18.88
+  },
+  {
+    "n": 86,
+    "reading": "eighty six",
+    "start": 18.96,
+    "end": 20.08
+  },
+  {
+    "n": 85,
+    "reading": "eighty five",
+    "start": 20.16,
+    "end": 21.28
+  },
+  {
+    "n": 84,
+    "reading": "eighty four",
+    "start": 21.36,
+    "end": 22.4
+  },
+  {
+    "n": 83,
+    "reading": "eighty three",
+    "start": 22.48,
+    "end": 23.52
+  },
+  {
+    "n": 82,
+    "reading": "eighty two",
+    "start": 23.64,
+    "end": 24.56
+  },
+  {
+    "n": 81,
+    "reading": "eighty one",
+    "start": 24.64,
+    "end": 25.68
+  },
+  {
+    "n": 80,
+    "reading": "eighty",
+    "start": 25.76,
+    "end": 26.56
+  },
+  {
+    "n": 79,
+    "reading": "seventy nine",
+    "start": 26.64,
+    "end": 27.84
+  },
+  {
+    "n": 78,
+    "reading": "seventy eight",
+    "start": 27.92,
+    "end": 29.04
+  },
+  {
+    "n": 77,
+    "reading": "seventy seven",
+    "start": 29.12,
+    "end": 30.32
+  },
+  {
+    "n": 76,
+    "reading": "seventy six",
+    "start": 30.4,
+    "end": 31.6
+  },
+  {
+    "n": 75,
+    "reading": "seventy five",
+    "start": 31.64,
+    "end": 32.8
+  },
+  {
+    "n": 74,
+    "reading": "seventy four",
+    "start": 32.88,
+    "end": 34
+  },
+  {
+    "n": 73,
+    "reading": "seventy three",
+    "start": 34.08,
+    "end": 35.2
+  },
+  {
+    "n": 72,
+    "reading": "seventy two",
+    "start": 35.28,
+    "end": 36.4
+  },
+  {
+    "n": 71,
+    "reading": "seventy one",
+    "start": 36.48,
+    "end": 37.6
+  },
+  {
+    "n": 70,
+    "reading": "seventy",
+    "start": 37.68,
+    "end": 38.56
+  },
+  {
+    "n": 69,
+    "reading": "sixty nine",
+    "start": 38.64,
+    "end": 39.76
+  },
+  {
+    "n": 68,
+    "reading": "sixty eight",
+    "start": 39.84,
+    "end": 40.88
+  },
+  {
+    "n": 67,
+    "reading": "sixty seven",
+    "start": 40.96,
+    "end": 42.08
+  },
+  {
+    "n": 66,
+    "reading": "sixty six",
+    "start": 42.16,
+    "end": 43.28
+  },
+  {
+    "n": 65,
+    "reading": "sixty five",
+    "start": 43.4,
+    "end": 44.4
+  },
+  {
+    "n": 64,
+    "reading": "sixty four",
+    "start": 44.48,
+    "end": 45.52
+  },
+  {
+    "n": 63,
+    "reading": "sixty three",
+    "start": 45.6,
+    "end": 46.64
+  },
+  {
+    "n": 62,
+    "reading": "sixty two",
+    "start": 46.72,
+    "end": 47.76
+  },
+  {
+    "n": 61,
+    "reading": "sixty one",
+    "start": 47.84,
+    "end": 48.88
+  },
+  {
+    "n": 60,
+    "reading": "sixty",
+    "start": 48.96,
+    "end": 49.76
+  },
+  {
+    "n": 59,
+    "reading": "fifty nine",
+    "start": 49.84,
+    "end": 50.96
+  },
+  {
+    "n": 58,
+    "reading": "fifty eight",
+    "start": 51.067,
+    "end": 52
+  },
+  {
+    "n": 57,
+    "reading": "fifty seven",
+    "start": 52.04,
+    "end": 53.04
+  },
+  {
+    "n": 56,
+    "reading": "fifty six",
+    "start": 53.12,
+    "end": 54.16
+  },
+  {
+    "n": 55,
+    "reading": "fifty five",
+    "start": 54.24,
+    "end": 55.28
+  },
+  {
+    "n": 54,
+    "reading": "fifty four",
+    "start": 55.36,
+    "end": 56.32
+  },
+  {
+    "n": 53,
+    "reading": "fifty three",
+    "start": 56.4,
+    "end": 57.44
+  },
+  {
+    "n": 52,
+    "reading": "fifty two",
+    "start": 57.48,
+    "end": 58.48
+  },
+  {
+    "n": 51,
+    "reading": "fifty one",
+    "start": 58.52,
+    "end": 59.52
+  },
+  {
+    "n": 50,
+    "reading": "fifty",
+    "start": 59.6,
+    "end": 60.4
+  },
+  {
+    "n": 49,
+    "reading": "forty nine",
+    "start": 60.48,
+    "end": 61.52
+  },
+  {
+    "n": 48,
+    "reading": "forty eight",
+    "start": 61.6,
+    "end": 62.56
+  },
+  {
+    "n": 47,
+    "reading": "forty seven",
+    "start": 62.68,
+    "end": 63.6
+  },
+  {
+    "n": 46,
+    "reading": "forty six",
+    "start": 63.68,
+    "end": 64.72
+  },
+  {
+    "n": 45,
+    "reading": "forty five",
+    "start": 64.8,
+    "end": 65.84
+  },
+  {
+    "n": 44,
+    "reading": "forty four",
+    "start": 65.96,
+    "end": 66.88
+  },
+  {
+    "n": 43,
+    "reading": "forty three",
+    "start": 67,
+    "end": 67.92
+  },
+  {
+    "n": 42,
+    "reading": "forty two",
+    "start": 68.04,
+    "end": 68.88
+  },
+  {
+    "n": 41,
+    "reading": "forty one",
+    "start": 68.96,
+    "end": 69.92
+  },
+  {
+    "n": 40,
+    "reading": "forty",
+    "start": 70,
+    "end": 70.8
+  },
+  {
+    "n": 39,
+    "reading": "thirty nine",
+    "start": 70.88,
+    "end": 71.92
+  },
+  {
+    "n": 38,
+    "reading": "thirty eight",
+    "start": 71.96,
+    "end": 72.88
+  },
+  {
+    "n": 37,
+    "reading": "thirty seven",
+    "start": 72.96,
+    "end": 73.92
+  },
+  {
+    "n": 36,
+    "reading": "thirty six",
+    "start": 74,
+    "end": 75.04
+  },
+  {
+    "n": 35,
+    "reading": "thirty five",
+    "start": 75.08,
+    "end": 76.08
+  },
+  {
+    "n": 34,
+    "reading": "thirty four",
+    "start": 76.16,
+    "end": 77.12
+  },
+  {
+    "n": 33,
+    "reading": "thirty three",
+    "start": 77.16,
+    "end": 78.16
+  },
+  {
+    "n": 32,
+    "reading": "thirty two",
+    "start": 78.2,
+    "end": 79.12
+  },
+  {
+    "n": 31,
+    "reading": "thirty one",
+    "start": 79.2,
+    "end": 80.16
+  },
+  {
+    "n": 30,
+    "reading": "thirty",
+    "start": 80.24,
+    "end": 80.96
+  },
+  {
+    "n": 29,
+    "reading": "twenty nine",
+    "start": 81.12,
+    "end": 82
+  },
+  {
+    "n": 28,
+    "reading": "twenty eight",
+    "start": 82.16,
+    "end": 82.96
+  },
+  {
+    "n": 27,
+    "reading": "twenty seven",
+    "start": 83.04,
+    "end": 84
+  },
+  {
+    "n": 26,
+    "reading": "twenty six",
+    "start": 84.08,
+    "end": 85.12
+  },
+  {
+    "n": 25,
+    "reading": "twenty five",
+    "start": 85.28,
+    "end": 86.16
+  },
+  {
+    "n": 24,
+    "reading": "twenty four",
+    "start": 86.24,
+    "end": 87.2
+  },
+  {
+    "n": 23,
+    "reading": "twenty three",
+    "start": 87.36,
+    "end": 88.24
+  },
+  {
+    "n": 22,
+    "reading": "twenty two",
+    "start": 88.4,
+    "end": 89.2
+  },
+  {
+    "n": 21,
+    "reading": "twenty one",
+    "start": 89.28,
+    "end": 90.24
+  },
+  {
+    "n": 20,
+    "reading": "twenty",
+    "start": 90.32,
+    "end": 91.12
+  },
+  {
+    "n": 19,
+    "reading": "nineteen",
+    "start": 91.2,
+    "end": 92.16
+  },
+  {
+    "n": 18,
+    "reading": "eighteen",
+    "start": 92.32,
+    "end": 93.12
+  },
+  {
+    "n": 17,
+    "reading": "seventeen",
+    "start": 93.2,
+    "end": 94.16
+  },
+  {
+    "n": 16,
+    "reading": "sixteen",
+    "start": 94.32,
+    "end": 95.12
+  },
+  {
+    "n": 15,
+    "reading": "fifteen",
+    "start": 95.2,
+    "end": 96.08
+  },
+  {
+    "n": 14,
+    "reading": "fourteen",
+    "start": 96.16,
+    "end": 97.04
+  },
+  {
+    "n": 13,
+    "reading": "thirteen",
+    "start": 97.12,
+    "end": 98
+  },
+  {
+    "n": 12,
+    "reading": "twelve",
+    "start": 98.08,
+    "end": 98.8
+  },
+  {
+    "n": 11,
+    "reading": "eleven",
+    "start": 98.92,
+    "end": 99.68
+  },
+  {
+    "n": 10,
+    "reading": "ten",
+    "start": 99.88,
+    "end": 100.4
+  },
+  {
+    "n": 9,
+    "reading": "nine",
+    "start": 100.64,
+    "end": 101.12
+  },
+  {
+    "n": 8,
+    "reading": "eight",
+    "start": 101.2,
+    "end": 101.84
+  },
+  {
+    "n": 7,
+    "reading": "seven",
+    "start": 101.92,
+    "end": 102.64
+  },
+  {
+    "n": 6,
+    "reading": "six",
+    "start": 102.72,
+    "end": 103.36
+  },
+  {
+    "n": 5,
+    "reading": "five",
+    "start": 103.44,
+    "end": 104.16
+  },
+  {
+    "n": 4,
+    "reading": "four",
+    "start": 104.24,
+    "end": 104.96
+  },
+  {
+    "n": 3,
+    "reading": "three",
+    "start": 105.04,
+    "end": 105.76
+  },
+  {
+    "n": 2,
+    "reading": "two",
+    "start": 105.92,
+    "end": 106.4
+  },
+  {
+    "n": 1,
+    "reading": "one",
+    "start": 106.48,
+    "end": 107.12
+  },
+  {
+    "n": 0,
+    "reading": "zero",
+    "start": 107.2,
+    "end": 107.92
+  }
+]
