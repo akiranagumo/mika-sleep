@@ -1,0 +1,43 @@
+name: Install complete Japanese Sui 100 to zero
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-japanese-full101.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download single-pass Japanese whispered count
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/OvwdrWvzmt4064n6vjek/D9TrDZJ4aTJt6kWjh8JY/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=xFIeia_-zyau7qMGjmk4r7Efkr8=' -o sui-japanese-full101.mp3
+          test $(wc -c < sui-japanese-full101.mp3) -gt 500000
+          python - <<'PY'
+          import json
+          words=json.load(open("sui-japanese-full101-segments.json"))
+          assert len(words)==101
+          assert all(w["n"]==100-i and w["start"]<w["end"]<=115.77 for i,w in enumerate(words))
+          print("All 101 Japanese Sui numbers validated in sequence")
+          PY
+      - name: Publish Japanese continuous source
+        run: |
+          set -euo pipefail
+          cp sui-japanese-full101.mp3 /tmp/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-japanese-full101.mp3 .
+            git add sui-japanese-full101.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Store verified continuous Sui Japanese 100-to-0 audio'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          exit 1
