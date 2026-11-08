@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.4.4</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.4.5</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -37,10 +37,10 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 </style>
 </head>
 <body><main>
-<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.4.4 · JAPANESE / ENGLISH WHISPERS</span></div>
+<div class="brand">☾ AKIRA SLEEP <span class="version">Ver.1.4.5 · JAPANESE / ENGLISH WHISPERS</span></div>
 <div class="moon" aria-hidden="true"></div>
 <h1>静かな眠りへ</h1>
-<p class="tag">Suiの囁き声だけで、呼吸からカウントまで。<br>あとは目を閉じて、音に身を任せてね。</p>
+<p class="tag">Suiのやさしい声で、呼吸からカウントまで。数字は控えめな音量に。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
 <div class="wind-row"><label for="language">カウントの言語</label><span class="wind-label">Sui の囁き</span></div>
 <select id="language" aria-label="カウントの言語を選択" class="language-select">
@@ -60,9 +60,9 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <div class="phase" id="phase">現在：冒頭・呼吸・リラックス</div>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-clean-all-143"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-quiet-count-145"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。日本語カウント版と英語カウント版を選択できます。どちらも数字の間にはSuiの日本語の安心する囁き声が入ります。「100から開始」を押すと専用のカウント音声を最初から再生します。iPhoneで再生位置の移動が失敗してカウントが聞こえない問題を防ぎます。Suiが日本語または英語で数えることを囁きます。言い終わってから5秒間静かにして、100からカウントを始めます。冒頭・呼吸練習・自然のイメージ・100から0の数字・数字の間の優しい言葉まで、すべてSuiの囁き声で統一。カウントの言語は日本語または英語を選べます。日本語版も英語版も100から0までの101個を一度に録音し、全数字の並びを検証したSuiの囁き声です。数字の間の安心する言葉は日本語のままです。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
+<p class="note">約32分の睡眠誘導です。日本語カウント版と英語カウント版を選択できます。どちらも数字の間にはSuiの日本語の安心する囁き声が入ります。「100から開始」を押すと専用のカウント音声を最初から再生します。iPhoneで再生位置の移動が失敗してカウントが聞こえない問題を防ぎます。Suiが日本語または英語で数えることを囁きます。言い終わってから5秒間静かにして、100からカウントを始めます。冒頭・呼吸練習・自然のイメージ・100から0の数字・数字の間の優しい言葉まで、すべてSuiの囁き声で統一。カウントの言語は日本語または英語を選べます。日本語版も英語版も100から0までの101個を確認し、数字の間の無音で区切って完成MP3に収録しています。数字の声は前版より小さく、終盤にかけてさらに静かになる設定です。数字の間の安心する言葉は日本語のままです。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -93,7 +93,7 @@ const presetFiles=[
  ["中","sleep-background-wind-10.mp3"],
  ["強","sleep-background-wind-20.mp3"]
 ];
-const audioTag="v=20261108-monolithic-144";
+const audioTag="v=20261108-quiet-count-145";
 const VOICE_TIMINGS={ja:null,en:null};
 for(const language of ["ja","en"]){
   fetch("./sui-master-timing-"+language+".json?"+audioTag)
