@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/build-background-audio.yml'
       - 'scripts/build_background_audio.py'
+      - 'sui-count-whisper-japanese.mp3'
+      - 'sui-whisper-japanese-segments.json'
+      - 'sui-comfort-whispers-v2.mp3'
+      - 'sui-comfort-whispers-v2-segments.json'
   workflow_dispatch:
 permissions:
   contents: write
