@@ -1,9 +1,12 @@
 Sleep voice mode: japanese
 Validated all 101 consecutive spoken English numbers, 100 through 0
 Traceback (most recent call last):
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 332, in <module>
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 330, in <module>
     main()
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 93, in main
-    if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
-           ^^^^^^^^^^^^
-NameError: name 'new_whispers' is not defined
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 104, in main
+    if w["n"] != num or w["reading"] != japanese_number(num):
+                                        ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 100, in japanese_number
+    return ("" if tens == 1 else kana_digits[tens]) + "じゅう" + (kana_digits[ones] if ones else "")
+                                 ~~~~~~~~~~~^^^^^^
+IndexError: list index out of range
