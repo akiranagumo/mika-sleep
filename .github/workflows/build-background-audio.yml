@@ -22,6 +22,12 @@ on:
       - 'sui-english-full101-segments.json'
       - 'sui-japanese-full101.mp3'
       - 'sui-japanese-full101-segments.json'
+      - 'sui-japanese-clean101.mp3'
+      - 'sui-english-clean101.mp3'
+      - 'sui-comfort-clean14.mp3'
+      - 'sui-japanese-clean101-segments.json'
+      - 'sui-english-clean101-segments.json'
+      - 'sui-comfort-clean14-segments.json'
   workflow_dispatch:
 permissions:
   contents: write
