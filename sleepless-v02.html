@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#170f22">
+<meta name="description" content="AKIRA SLEEPLESS Ver.0.2。成人同士の、甘い夜から静かな安心へ。既存の音声だけを使います。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AKIRA SLEEPLESS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AKIRA SLEEPLESS Ver.0.2</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#120e18;color:#fff1ea;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding:max(18px,env(safe-area-inset-top)) 14px max(28px,env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;border:1px solid #8d6a7c55;border-radius:26px;padding:28px 20px 24px;background:#1c1524}
+.brand{text-align:center;letter-spacing:.14em;font-size:12px;color:#f0c9d4}
+.brand b{font-weight:560;color:#fff4ec}
+#version{display:block;margin-top:6px;letter-spacing:.04em;color:#d7b4c4;font-size:12px}
+.orb{width:92px;height:92px;margin:26px auto 16px;border-radius:50%;background:#e7b7b4;border:1px solid #fff6}
+h1{text-align:center;font-weight:500;font-size:24px;letter-spacing:.06em;margin:0 0 10px}
+.lead{text-align:center;color:#e0c6d2;font-size:14px;line-height:1.85;margin:0 0 8px}
+.note{text-align:center;color:#cbb3c2;font-size:12px;line-height:1.75;margin:0 0 18px}
+.phase{text-align:center;color:#f3d7cf;font-size:13px;letter-spacing:.08em;margin:0}
+#caption{min-height:96px;border-top:1px solid #6e586b66;border-bottom:1px solid #6e586b66;padding:18px 6px;text-align:center;color:#ffe4dc;font-size:16px;line-height:1.8;display:flex;align-items:center;justify-content:center}
+button{display:block;width:100%;border:0;background:#efd3c8;color:#271727;border-radius:28px;padding:16px;margin-top:20px;font-size:16px;font-weight:700;min-height:54px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.55;cursor:wait}
+.row{display:flex;justify-content:space-between;gap:8px;color:#e4cddb;font-size:13px;margin:18px 0 8px}
+input[type=range]{width:100%;accent-color:#e5b4c1;cursor:pointer;touch-action:pan-y;min-height:44px}
+label.field{display:block;color:#e4cddb;font-size:13px;margin-top:8px}
+select{width:100%;margin-top:8px;background:#2a2033;color:#fff1ea;border:1px solid #8d6a7c;border-radius:12px;padding:12px;font-size:15px}
+#message{color:#cbb8c6;text-align:center;font-size:13px;line-height:1.7;min-height:44px;margin:16px 0 0}
+details{margin-top:18px;border-top:1px solid #6e586b66;padding-top:14px;color:#e6d5df;font-size:13px;line-height:1.8}
+summary{cursor:pointer;color:#f0d5cf;font-size:14px}
+ol,ul{padding-left:1.2em;margin:10px 0}
+li{margin:6px 0}
+.back{display:block;text-align:center;margin-top:18px;color:#e7c3d2;font-size:13px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+</style>
+</head>
+<body>
+<main>
+<div class="brand"><b>AKIRA SLEEPLESS</b><span id="version">Ver.0.2</span></div>
+<div class="orb" aria-hidden="true"></div>
+<h1>今夜は、そばにいる</h1>
+<p class="lead">成人同士の夜です。ときめきから、安心へ。声は進むほど小さく、間は広がります。</p>
+<p class="note">画面の文は時間帯の説明です。音声の台詞は書き起こしていません。収録の全文は未確認です。</p>
+<p class="phase" id="phase">夜のはじまり</p>
+<div id="caption">音声を読み込んでいます。</div>
+<button id="start" type="button" disabled>音声を確認しています…</button>
+<label class="field" for="scenario">シナリオ</label>
+<select id="scenario" aria-label="シナリオ"></select>
+<div class="row"><span>再生位置</span><span id="position">00:00 / --:--</span></div>
+<input id="seek" type="range" min="0" max="1" step="1" value="0" aria-label="再生位置">
+<div class="row"><span>夜風の環境音</span><span id="volumeLabel">6%</span></div>
+<input id="volume" type="range" min="0" max="100" step="1" value="6" aria-label="夜風の音量">
+<p id="message" role="status">既存の音声ファイルを確認しています。</p>
+<details>
+<summary>この夜に入っている音</summary>
+<ul id="plan"></ul>
+<p>開始時刻とファイル名だけを載せています。台詞の引用はありません。<code>girlfriend-v02-03</code> と <code>girlfriend-v02-04</code> はリポジトリに無いので使っていません。「おやすみ」だけの音声もありません。</p>
+<p>夜風は録音ではなく、このページの中で作る低い音です。音量スライダーは、この夜風だけを変えます。</p>
+</details>
+<details id="install">
+<summary>iPhoneのホーム画面に追加する</summary>
+<ol>
+<li>iPhoneのSafariでこのページを開きます。メッセージやSNSの画面で開いているときは「Safariで開く」を選ぶか、アドレスをコピーしてSafariのアドレス欄に貼ります。</li>
+<li>画面下の共有ボタン（四角から上向きの矢印）をタップします。タブの位置が上のときは、アドレス欄のボタンをタップしてから「共有」をタップします。</li>
+<li>メニューを下までスクロールして「ホーム画面に追加」をタップします。見つからないときは、一番下の「アクションを編集」をタップし、「ホーム画面に追加」を加えます。</li>
+<li>名前を「AKIRA SLEEPLESS」にします。「ウェブアプリとして開く」が表示されている場合はオンにします。</li>
+<li>右上の「追加」をタップします。次からはホーム画面のアイコンで開けます。</li>
+</ol>
+<p>プライベートブラウズでは「ホーム画面に追加」が出せないことがあります。通常のタブで開いてください。音を出すには、開いたあと「この夜をはじめる」をタップします。</p>
+</details>
+<a class="back" href="./v12.html">通常の AKIRA SLEEP に戻る</a>
+</main>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const PHASES = {
+  open: { name: '夜のはじまり', detail: 'まだ声はありません。夜風だけです。' },
+  spark: { name: 'ときめき', detail: '前半です。既存の音声を、あいだを空けて流します。' },
+  drift: { name: '移ろい', detail: '声を小さくし、次の声までの間を広げています。' },
+  rest: { name: '安心', detail: '短い既存の声だけです。終わりに近づくほど、話しません。' },
+  quiet: { name: '静けさ', detail: 'ここからは声を足していません。夜風だけです。' }
+};
+const SCENARIOS = [
+  {
+    id: 'quiet-night',
+    title: '静かな夜（用意できた音声だけ）',
+    tail: 210,
+    windFade: 120,
+    events: [
+      { src: 'girlfriend-v02-01.mp3', at: 8, gain: 0.92, hint: 36.598, phase: 'spark', kind: 'voice', label: '既存の音声 1' },
+      { src: 'girlfriend-closer.mp3', at: 63, gain: 0.84, hint: 27.559, phase: 'spark', kind: 'voice', label: '既存の音声 2' },
+      { src: 'girlfriend-v02-02.mp3', at: 111, gain: 0.76, hint: 32.366, phase: 'spark', kind: 'voice', label: '既存の音声 3' },
+      { src: 'girlfriend-tease.mp3', at: 168, gain: 0.66, hint: 28.029, phase: 'spark', kind: 'voice', label: '既存の音声 4' },
+      { src: 'girlfriend-v02-05.mp3', at: 232, gain: 0.52, hint: 31.321, phase: 'drift', kind: 'voice', label: '既存の音声 5' },
+      { src: 'girlfriend-v02-06.mp3', at: 311, gain: 0.40, hint: 34.847, phase: 'drift', kind: 'voice', label: '既存の音声 6' },
+      { src: 'girlfriend-sleep.mp3', at: 406, gain: 0.30, hint: 31.164, phase: 'rest', kind: 'voice', label: '既存の音声 7' },
+      { src: 'sui-comfort.mp3', at: 517, gain: 0.22, hint: 5.329, phase: 'rest', kind: 'calm', label: '既存の静かな声 1' },
+      { src: 'sui-whisper-calm.mp3', at: 622, gain: 0.16, hint: 4.049, phase: 'rest', kind: 'calm', label: '既存の静かな声 2' },
+      { src: 'sui-suggestion-quiet.mp3', at: 746, gain: 0.12, hint: 4.598, phase: 'rest', kind: 'calm', label: '既存の静かな声 3' },
+      { src: 'sui-whisper-rest.mp3', at: 901, gain: 0.09, hint: 2.769, phase: 'rest', kind: 'calm', label: '既存の静かな声 4' },
+      { src: 'sui-suggestion-safe.mp3', at: 1084, gain: 0.07, hint: 3.788, phase: 'rest', kind: 'calm', label: '既存の静かな声 5' }
+    ]
+  }
+];
+
+let scenario = SCENARIOS[0];
+let ctx = null;
+let voiceBus = null;
+let windGain = null;
+let windSource = null;
+let files = new Map();
+let decoded = new Map();
+let voiceSources = [];
+let playing = false;
+let busy = false;
+let scrubbing = false;
+let startedAt = 0;
+let position = 0;
+let total = 1;
+let raf = 0;
+let windTarget = 0;
+const testMode = new URLSearchParams(location.search).has('test');
+
+const fmt = seconds => {
+  const s = Math.max(0, Math.floor(seconds));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+};
+function say(text) { $('message').textContent = text; }
+function clamp(t) { return Math.min(total, Math.max(0, t)); }
+
+function fillScenarios() {
+  const select = $('scenario');
+  select.replaceChildren();
+  for (const item of SCENARIOS) {
+    const option = document.createElement('option');
+    option.value = item.id;
+    option.textContent = item.title;
+    select.appendChild(option);
+  }
+  select.value = scenario.id;
+}
+
+function eventEnd(ev) {
+  const buffer = decoded.get(ev.src);
+  return ev.at + (buffer ? buffer.duration : (ev.hint || 0));
+}
+function refreshTotal() {
+  const last = scenario.events[scenario.events.length - 1];
+  total = Math.ceil(eventEnd(last) + scenario.tail);
+  $('seek').max = String(total);
+  render(position);
+  renderPlan();
+}
+
+function phaseAt(t) {
+  const events = scenario.events;
+  if (!events.length || t < events[0].at) return PHASES.open;
+  let current = events[0];
+  for (const ev of events) if (t >= ev.at) current = ev;
+  if (current === events[events.length - 1] && decoded.has(current.src) && t >= eventEnd(current)) return PHASES.quiet;
+  return PHASES[current.phase] || PHASES.open;
+}
+
+function captionAt(t) {
+  for (const ev of scenario.events) {
+    if (!decoded.has(ev.src)) continue;
+    if (t >= ev.at && t < eventEnd(ev)) {
+      return ev.kind === 'calm'
+        ? ev.label + 'を再生しています。恋人の台詞としては表示しません。'
+        : ev.label + 'を再生しています。台詞は表示しません。';
+    }
+  }
+  if (phaseAt(t) === PHASES.quiet) return '声はありません。夜風だけが残っています。';
+  if (t < scenario.events[0].at) return 'はじまりの間です。まだ声はありません。';
+  return '声と声のあいだです。';
+}
+
+function render(t) {
+  const shown = clamp(t);
+  if (!scrubbing) $('seek').value = String(Math.floor(shown));
+  $('position').textContent = fmt(scrubbing ? Number($('seek').value) : shown) + ' / ' + fmt(total);
+  const phase = phaseAt(scrubbing ? Number($('seek').value) : shown);
+  $('phase').textContent = phase.name;
+  $('caption').textContent = scrubbing ? phase.detail : captionAt(shown);
+}
+
+function renderPlan() {
+  const list = $('plan');
+  list.replaceChildren();
+  for (const ev of scenario.events) {
+    const li = document.createElement('li');
+    const end = decoded.has(ev.src) ? '–' + fmt(eventEnd(ev)) : '';
+    li.textContent = fmt(ev.at) + end + '　' + ev.label + '　' + ev.src;
+    list.appendChild(li);
+  }
+}
+
+function uniqueSources() {
+  return [...new Set(SCENARIOS.flatMap(item => item.events.map(ev => ev.src)))];
+}
+
+async function prefetch() {
+  const names = uniqueSources();
+  await Promise.all(names.map(async name => {
+    if (files.has(name)) return;
+    const response = await fetch('./' + name, { cache: 'force-cache' });
+    if (!response.ok) throw new Error(name + ' を読み込めません（' + response.status + '）');
+    files.set(name, await response.arrayBuffer());
+  }));
+}
+
+function unlockSync() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) throw new Error('このブラウザは音声再生に対応していません');
+  if (!ctx) {
+    ctx = new AudioCtx();
+    voiceBus = ctx.createGain();
+    voiceBus.gain.value = 1;
+    voiceBus.connect(ctx.destination);
+    windGain = ctx.createGain();
+    windGain.gain.value = 0;
+    windGain.connect(ctx.destination);
+  }
+  try {
+    const silent = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate / 32)), ctx.sampleRate);
+    const blip = ctx.createBufferSource();
+    blip.buffer = silent;
+    blip.connect(ctx.destination);
+    blip.start();
+  } catch (e) { /* 出力装置が無い試験環境でも、この後の再生を続ける */ }
+  ctx.resume();
+}
+
+async function ensureDecoded() {
+  unlockSync();
+  for (const [name, bytes] of files) {
+    if (decoded.has(name)) continue;
+    decoded.set(name, await ctx.decodeAudioData(bytes.slice(0)));
+  }
+  refreshTotal();
+}
+
+function cutVoices() {
+  const old = voiceSources.splice(0);
+  for (const source of old) {
+    try { source.stop(); } catch (e) { /* already stopped */ }
+  }
+}
+
+function startWind() {
+  if (windSource || !ctx) return;
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let x = 0;
+  for (let i = 0; i < data.length; i++) {
+    x = 0.986 * x + 0.014 * (Math.random() * 2 - 1);
+    data[i] = x * 3.8;
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 700;
+  source.connect(filter);
+  filter.connect(windGain);
+  source.start();
+  windSource = source;
+}
+
+function applyWind(t) {
+  if (!windGain || !ctx) return;
+  const now = ctx.currentTime;
+  if (!playing) {
+    windTarget = 0;
+  } else {
+    const slider = Number($('volume').value) / 100;
+    const fadeIn = Math.min(1, Math.max(0, t / 6));
+    const fadeOut = t > total - scenario.windFade ? Math.max(0, (total - t) / scenario.windFade) : 1;
+    windTarget = slider * 0.42 * fadeIn * fadeOut;
+  }
+  windGain.gain.setTargetAtTime(windTarget, now, playing ? 0.35 : 0.2);
+}
+
+function schedule(t) {
+  cutVoices();
+  const now = ctx.currentTime;
+  for (const ev of scenario.events) {
+    const buffer = decoded.get(ev.src);
+    if (!buffer) continue;
+    const end = ev.at + buffer.duration;
+    if (t >= end - 0.03) continue;
+    const offset = Math.max(0, t - ev.at);
+    const remaining = buffer.duration - offset;
+    if (remaining <= 0.05) continue;
+    const when = now + 0.06 + Math.max(0, ev.at - t);
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    source.connect(gain);
+    gain.connect(voiceBus);
+    const fadeIn = Math.min(0.45, remaining / 3);
+    const fadeOut = Math.min(0.95, remaining / 3);
+    const done = when + remaining;
+    gain.gain.setValueAtTime(0, when);
+    gain.gain.linearRampToValueAtTime(ev.gain, when + fadeIn);
+    gain.gain.linearRampToValueAtTime(ev.gain, Math.max(when + fadeIn + 0.02, done - fadeOut));
+    gain.gain.linearRampToValueAtTime(0, done);
+    source.start(when, offset, remaining);
+    voiceSources.push(source);
+  }
+}
+
+function seekTo(t) {
+  position = clamp(t);
+  if (playing && ctx) {
+    startedAt = ctx.currentTime - position;
+    schedule(position);
+    applyWind(position);
+  }
+  render(position);
+}
+
+function fadeStop(reset, message) {
+  cancelAnimationFrame(raf);
+  const wasPlaying = playing;
+  playing = false;
+  if (ctx && wasPlaying) {
+    const now = ctx.currentTime;
+    voiceBus.gain.cancelScheduledValues(now);
+    voiceBus.gain.setValueAtTime(voiceBus.gain.value, now);
+    voiceBus.gain.linearRampToValueAtTime(0, now + 0.9);
+    windGain.gain.cancelScheduledValues(now);
+    windGain.gain.setValueAtTime(windGain.gain.value, now);
+    windGain.gain.linearRampToValueAtTime(0, now + 1.15);
+    windTarget = 0;
+    const old = voiceSources.splice(0);
+    for (const source of old) {
+      try { source.stop(now + 0.95); } catch (e) { /* already stopped */ }
+    }
+  }
+  if (reset) position = 0;
+  render(position);
+  $('start').textContent = position > 0 ? '▶ 続ける' : '▶ この夜をはじめる';
+  if (message) say(message);
+}
+
+function frame() {
+  if (!playing || !ctx) return;
+  position = Math.min(total, ctx.currentTime - startedAt);
+  render(position);
+  applyWind(position);
+  if (position >= total) {
+    fadeStop(true, '最後まで来ました。声は足していません。');
+    return;
+  }
+  raf = requestAnimationFrame(frame);
+}
+
+async function startPlaying() {
+  if (busy) return;
+  if (playing) {
+    fadeStop(false, '音をフェードして止めました。位置は残しています。');
+    return;
+  }
+  busy = true;
+  try {
+    unlockSync();
+    await ctx.resume();
+    await ensureDecoded();
+    voiceBus.gain.cancelScheduledValues(ctx.currentTime);
+    voiceBus.gain.setValueAtTime(1, ctx.currentTime);
+    playing = true;
+    if (position >= total - 0.2) position = 0;
+    startedAt = ctx.currentTime - position;
+    startWind();
+    schedule(position);
+    applyWind(position);
+    $('start').textContent = '■ 停止する';
+    say('再生中です。夜風のスライダーは声の大きさを変えません。');
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(frame);
+  } catch (error) {
+    playing = false;
+    say('再生できませんでした：' + error.message);
+  } finally {
+    busy = false;
+  }
+}
+
+function leavePage() {
+  if (playing) fadeStop(false, '画面を離れたので、音をフェードして止めました。戻ったらボタンで続けられます。');
+}
+
+function finishScrub() {
+  if (!scrubbing) return;
+  scrubbing = false;
+  seekTo(Number($('seek').value));
+}
+
+$('start').addEventListener('pointerdown', () => { try { unlockSync(); } catch (e) { /* click reports it */ } });
+$('start').addEventListener('click', startPlaying);
+$('seek').addEventListener('pointerdown', () => { scrubbing = true; });
+$('seek').addEventListener('input', () => {
+  scrubbing = true;
+  $('position').textContent = fmt(Number($('seek').value)) + ' / ' + fmt(total);
+  const phase = phaseAt(Number($('seek').value));
+  $('phase').textContent = phase.name;
+  $('caption').textContent = phase.detail;
+});
+$('seek').addEventListener('change', finishScrub);
+$('seek').addEventListener('pointerup', finishScrub);
+$('seek').addEventListener('pointercancel', finishScrub);
+$('volume').addEventListener('input', () => {
+  $('volumeLabel').textContent = $('volume').value + '%';
+  applyWind(playing ? position : 0);
+});
+$('scenario').addEventListener('change', () => {
+  const next = SCENARIOS.find(item => item.id === $('scenario').value);
+  if (!next || next === scenario) return;
+  if (playing) fadeStop(true, 'シナリオを切り替えました。');
+  scenario = next;
+  position = 0;
+  render(0);
+  renderPlan();
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) leavePage(); });
+window.addEventListener('pagehide', leavePage);
+window.addEventListener('pageshow', event => {
+  if (!event.persisted) return;
+  playing = false;
+  voiceSources = [];
+  decoded.clear();
+  ctx = null;
+  voiceBus = null;
+  windGain = null;
+  windSource = null;
+  $('start').textContent = position > 0 ? '▶ 続ける' : '▶ この夜をはじめる';
+  say('画面に戻しました。音は自動では続きません。ボタンを押すと、残した位置から再生します。');
+});
+
+if (testMode) {
+  window.__sleep = () => ({
+    playing, busy, scrubbing, position, total, windTarget,
+    sources: voiceSources.length,
+    ctx: !!ctx,
+    wind: !!windSource,
+    scenario: scenario.id,
+    scenarios: SCENARIOS.length
+  });
+}
+
+fillScenarios();
+refreshTotal();
+prefetch().then(() => {
+  $('start').disabled = false;
+  $('start').textContent = '▶ この夜をはじめる';
+  say('準備できました。最初のタップで音が有効になります。イヤホンなら音量は小さめから。');
+  refreshTotal();
+}).catch(error => {
+  $('start').textContent = '読み込みに失敗しました';
+  say(error.message);
+});
+})();
+</script>
+</body>
+</html>
