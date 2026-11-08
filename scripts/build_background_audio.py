@@ -60,10 +60,22 @@ def main():
         html, "introduction audio"
     )
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
-    new_whispers = json.loads((ROOT / "sui-whisper-v2-segments.json").read_text("utf-8"))
+    new_whispers = json.loads((ROOT / "sui-whisper-japanese-segments.json").read_text("utf-8"))
     comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
     if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
         raise ValueError("Expected all 89..0 new Sui whisper numbers in order")
+    kana_digits = ["ぜろ","いち","に","さん","よん","ご","ろく","なな","はち","きゅう"]
+    def japanese_number(n):
+        if n == 0:
+            return kana_digits[0]
+        if n < 10:
+            return kana_digits[n]
+        tens, ones = divmod(n, 10)
+        return ("" if tens == 1 else kana_digits[tens]) + "じゅう" + (kana_digits[ones] if ones else "")
+    for w in new_whispers:
+        if w["reading"] != japanese_number(w["n"]):
+            raise ValueError(f"English/mismatched count prevented: {w['n']}, {w['reading']}")
+
     if len(comforts) != 14:
         raise ValueError("Expected 14 Sui whispered relaxation phrases")
     # The final generated clip ends very close to the end of its source.
@@ -96,7 +108,7 @@ def main():
             return memo[filename]
 
         whisper_audio = asset("sui-count-whisper.mp3")
-        new_whisper_audio = asset("sui-count-whisper-v2.mp3")
+        new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
         breath_intro = asset("sui-breath-new-intro.mp3")
         inhale = asset("sui-breath-new-inhale.mp3")
@@ -147,7 +159,7 @@ def main():
                 span = whispers[100 - number]
                 track = whisper_audio
             else:
-                # New studio take: 89..0 is explicitly spoken in a whisper.
+                # Japanese hiragana-only take: 89..0 whispered in Japanese.
                 span = new_whispers[89 - number]
                 track = new_whisper_audio
             start = float(span["start"])
@@ -206,7 +218,7 @@ def main():
         assert phrases_used >= 30, f"Insufficient reassurance whispers: {phrases_used}"
         print(f"Whisper QA: 101 full Sui whisper counts, "
               f"{phrases_used} complete gentle reassurance phrases; "
-              "89..0 replaced with whisper-only take", flush=True)
+              "89..0 replaced with Japanese-hiragana whisper-only take", flush=True)
 
         # Validate Sui-only audio BEFORE adding wind: ambient must never mask
         # missing or weak speech clips.  The other files are pure remixes.
