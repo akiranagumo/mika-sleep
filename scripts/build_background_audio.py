@@ -139,12 +139,12 @@ def main():
 
 
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
-        intro = asset("sui-v139-opening.mp3")
-        breath_intro = asset("sui-v139-breath-guide.mp3")
-        inhale = asset("sui-v139-inhale.mp3")
-        exhale = asset("sui-v139-exhale.mp3")
-        repeat = asset("sui-v139-repeat.mp3")
-        nature = asset("sui-v139-nature.mp3")
+        intro = asset("sui-v142-opening.mp3")
+        breath_intro = asset("sui-v142-breath-guide.mp3")
+        inhale = asset("sui-v142-inhale.mp3")
+        exhale = asset("sui-v142-exhale.mp3")
+        repeat = asset("sui-v142-repeat.mp3")
+        nature = asset("sui-v142-nature.mp3")
         announce = asset("sui-count-intro-ja.mp3" if mode == "japanese"
                          else "sui-count-intro-en.mp3")
 
@@ -154,30 +154,50 @@ def main():
         total_seconds = tail_start + 600
         mix = np.zeros(round(total_seconds * SR) + SR, dtype=np.float32)
         print(f"Length: {total_seconds:.1f}s, {len(mix)} samples", flush=True)
+        count_checkpoints = []
 
-        def add(track, when, *, gain=1.0, start=0.0, duration=None, target_rms=0.11, fade_seconds=0.055):
+        def add(track, when, *, gain=1.0, start=0.0, duration=None, target_rms=0.11,
+                fade_seconds=0.055, audible_count=False):
             sample_offset = max(0, round(float(start) * SR))
             available = len(track) - sample_offset
             count = available if duration is None else min(available, max(0, round(duration * SR)))
             at = round(when * SR)
             if count < 10 or at < 0 or at >= len(mix):
-                return
+                raise ValueError("Missing or empty Sui audio segment")
             count = min(count, len(mix) - at)
             part = track[sample_offset:sample_offset + count]
-            # Sui clips have different recorded levels. Lift quiet speech toward
-            # a consistent, audible level before applying the sleep fade.
-            # A peak guard prevents clipping or an unexpectedly loud phrase.
             rms = float(np.sqrt(np.mean(np.square(part, dtype=np.float64))))
-            peak = float(np.max(np.abs(part)))
-            boost = min(6.0, max(1.0, target_rms / max(rms, 0.001)))
-            if peak > 0:
-                boost = min(boost, 0.82 / peak)
+            if audible_count:
+                # Prior releases used a strict peak-based gain cap: a single
+                # transient could force an otherwise soft whispered numeral
+                # to be almost inaudible, despite passing metadata checks.
+                # Normalize each full spoken number and gently soft-limit its
+                # peaks, preserving the breathy quality without hard clipping.
+                boost = min(30.0, max(1.0, 0.105 / max(rms, 0.0015)))
+                processed = 0.55 * np.tanh((part * boost) / 0.55)
+                # Small Japanese syllables like 'に' only last ~0.09s.
+                # Their edges need shorter fades to remain intelligible.
+                fade_seconds = min(fade_seconds, max(0.009, count / SR * 0.12))
+                level = 0.85 * gain
+            else:
+                peak = float(np.max(np.abs(part)))
+                boost = min(6.0, max(1.0, target_rms / max(rms, 0.001)))
+                if peak > 0:
+                    boost = min(boost, 0.82 / peak)
+                processed = part
+                level = 0.85 * gain * boost
             fade = min(round(SR * fade_seconds), count // 2)
-            levels = np.full(count, 0.85 * gain * boost, dtype=np.float32)
+            levels = np.full(count, level, dtype=np.float32)
             if fade:
                 levels[:fade] *= np.linspace(0, 1, fade, dtype=np.float32)
                 levels[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
-            mix[at:at + count] += part * levels
+            segment = processed * levels
+            if audible_count:
+                actual_rms = float(np.sqrt(np.mean(np.square(segment, dtype=np.float64))))
+                if actual_rms < 0.020:
+                    raise ValueError(f"Sui number at {when:.1f}s was inaudible: {actual_rms:.5f}")
+                count_checkpoints.append((int(round((when-count_start)/10)), actual_rms))
+            mix[at:at + count] += segment
 
 
         def whisper_count(number: int, when: float, *, intensity=1.0, language=None):
@@ -200,7 +220,7 @@ def main():
                 raise ValueError(f"Invalid Sui whisper {number} ({duration:.3f}s)")
             add(track, when, start=start, duration=duration,
                 gain=0.92 * intensity, target_rms=0.075,
-                fade_seconds=0.08)
+                fade_seconds=0.04, audible_count=(language is None))
 
         def comfort_whisper(phrase_idx: int, when: float, intensity: float):
             """Restore one FULL, short reassuring whisper between counts."""
@@ -263,6 +283,13 @@ def main():
                 comfort_whisper(phrases_used, when, gentle_fade)
                 phrases_used += 1
         assert phrases_used >= 30, f"Insufficient reassurance whispers: {phrases_used}"
+        if len(count_checkpoints) != 101:
+            raise RuntimeError(f"Missing audible Sui numbers: {len(count_checkpoints)} / 101")
+        if [i for i, level in count_checkpoints] != list(range(101)):
+            raise RuntimeError("Count sequence skipped or reordered in the final master")
+        print("101 audible Sui spoken count events, min RMS={:.4f}, max RMS={:.4f}".format(
+            min(level for _,level in count_checkpoints),
+            max(level for _,level in count_checkpoints)), flush=True)
         print(f"Whisper QA: 101 full Sui whisper counts, "
               f"{phrases_used} complete gentle reassurance phrases; "
               f"count language={mode}; all numbers whispered", flush=True)
