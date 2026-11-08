@@ -1,12 +1,21 @@
-Length: 1918.8s, 61432320 samples
-Whisper QA: 101 full Sui whisper counts, 35 complete gentle reassurance phrases; 89..0 replaced with whisper-only take
-Voice checkpoint intro: RMS 0.11085
-Voice checkpoint count_start: RMS 0.01660
-Voice checkpoint count_middle: RMS 0.00821
-Voice checkpoint count_late: RMS 0.00254
+[in#0 @ 0x5a05d5837c40] Error opening input: No such file or directory
+Error opening input file /home/runner/work/mika-sleep/mika-sleep/sui-count-whisper-japanese.mp3.
+Error opening input files: No such file or directory
 Traceback (most recent call last):
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 269, in <module>
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 285, in <module>
     main()
-  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 220, in main
-    raise RuntimeError(f"Speech too quiet at {title}: {level:.5f}")
-RuntimeError: Speech too quiet at count_late: 0.00254
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 111, in main
+    new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 107, in asset
+    memo[filename] = decode(ROOT / filename)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/mika-sleep/mika-sleep/scripts/build_background_audio.py", line 38, in decode
+    raw = subprocess.check_output([
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-i', '/home/runner/work/mika-sleep/mika-sleep/sui-count-whisper-japanese.mp3', '-ac', '1', '-ar', '32000', '-f', 'f32le', 'pipe:1']' returned non-zero exit status 254.
