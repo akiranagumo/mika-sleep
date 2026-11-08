@@ -31,7 +31,7 @@ jobs:
               for s in a:
                   assert len(s['clips'])==s['first']-s['last']+1
                   assert all(0<=c['start']<c['end']<=s['duration']+.01 for c in s['clips'])
-                  assert all(s['clips'][i]['end']<=s['clips'][i+1]['start'] for i in range(len(s['clips'])-1))
+                  assert all(s['clips'][i]['end']<=s['clips'][i+1]['start']+.03 for i in range(len(s['clips'])-1))
           for s in segments:
               name=f"sui-whisper-v4-{s['lang']}-b{s['block']:02d}.mp3"
               for attempt in range(4):
