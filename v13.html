@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08162a">
-<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.6</title>
+<title>AKIRA SLEEP — バックグラウンド再生 Ver.1.3.7</title>
 <meta name="description" content="Suiの声で眠りへ導く、約32分の睡眠音声。iPhoneの標準音声再生方式でロック画面・他のアプリへの切り替えに対応。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,6 +17,7 @@ main{max-width:530px;margin:0 auto;background:linear-gradient(165deg,#213752df,#
 h1{text-align:center;font-weight:400;letter-spacing:.08em;font-size:25px;margin:0 0 10px}.tag{text-align:center;color:#bacad5;font-size:13px;line-height:1.9;margin:0 auto 24px;max-width:360px}
 .flag{border:1px solid #c9d8de50;background:#b2cbd412;padding:11px 13px;border-radius:15px;color:#dce9ef;font-size:13px;line-height:1.65;text-align:center;margin:0 0 22px}
 .button{display:block;width:100%;min-height:64px;border:1px solid #f3e2b7;border-radius:20px;background:linear-gradient(120deg,#f5e0b5,#d5b985);color:#15263a;font-weight:800;font-size:18px;cursor:pointer}
+.button.count-start{margin-top:12px;background:linear-gradient(120deg,#d4c9f2,#9caad5);border-color:#d0c6ef;color:#17253f;font-size:17px}
 .button.secondary{margin-top:10px;background:transparent;color:#efdbc4;min-height:48px;font-size:14px;border-color:#8ba3b066}.button:disabled{opacity:.55}
 .row{display:flex;justify-content:space-between;gap:12px;color:#d6e0e5;font-size:13px;margin:20px 0 8px;font-variant-numeric:tabular-nums}
 .seek{width:100%;accent-color:#e9ce9f;height:28px;cursor:pointer}
@@ -39,7 +40,8 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <h1>静かな眠りへ</h1>
 <p class="tag">Suiの囁き声と、短い安心の言葉に包まれて。<br>あとは目を閉じて、音に身を任せてね。</p>
 <div class="flag">♪ <strong>バックグラウンド再生対応方式</strong><br>風の強さ別にMP3を用意し、再生中は1本の音源として流します。</div>
-<button class="button" type="button" id="play">▶ 睡眠導入をはじめる</button>
+<button class="button" type="button" id="play">▶ 最初から再生（呼吸練習あり）</button>
+<button class="button count-start" type="button" id="start100">☾ 100からカウント開始（呼吸練習なし）</button>
 <button class="button secondary" type="button" id="voiceTest">♫ Suiの声を試聴（短いテスト）</button>
 <button class="button secondary" type="button" id="countTest">♫ 囁きと優しい語りをすぐ確認（99から）</button>
 <button class="button secondary" type="button" id="count89Test">♫ 89から日本語の囁きを確認</button>
@@ -50,9 +52,9 @@ strong{color:#f8e7c0}#audio{color-scheme:dark}
 <button class="button secondary" type="button" id="windTest">♫ 選んだ風の音だけを8秒試聴</button>
 <div class="row"><span>再生位置</span><span id="elapsed">00:00 / 約32分</span></div>
 <input class="seek" type="range" min="0" max="1000" value="0" id="seek" aria-label="再生位置を移動">
-<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-japanese-whisper-136"></audio>
+<audio id="audio" preload="metadata" controls playsinline src="./sleep-background-full.mp3?v=20261108-sui-count100-137"></audio>
 <div class="status" id="status" role="status">再生ボタンを押すとスタート。画面を消しても再生できるかiPhoneで試してね。</div>
-<p class="note">約32分の睡眠誘導です。100から0の数字はSuiの囁き声で統一。89から0までは日本語ひらがなで新たに録音したSuiの囁き声です。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
+<p class="note">約32分の睡眠誘導です。「100からカウント開始」を押すと、前半の音声テストや呼吸練習を飛ばして数字100から再生できます。100から0の数字はSuiの囁き声で統一。89から0までは日本語ひらがなで新たに録音したSuiの囁き声です。数字の合間には「右手が重い」「もう頑張らなくていいんですよ」などの短い優しい囁きを戻し、フレーズの途中で切れないようにしました。風の音は「なし・微風・弱・中・強」から選べます。バーから指を離すと音量が切り替わります。上の試聴ボタンで、Suiの声を流さず風だけ確認できます。iPhoneのバックグラウンド再生を保つため、風の強さを変えるときに一瞬音が途切れることがあります。</p>
 <details>
 <summary>iPhoneで画面を閉じても聴くには</summary>
 <ol>
@@ -71,6 +73,7 @@ const audio=document.getElementById("audio");
 const play=document.getElementById("play");
 const back10=document.getElementById("back10");
 const countTest=document.getElementById("countTest");
+const start100=document.getElementById("start100");
 const count89Test=document.getElementById("count89Test");
 const wind=document.getElementById("wind");
 const windLabel=document.getElementById("windLabel");
@@ -186,11 +189,34 @@ const fmt=v=>{v=Math.max(0,Math.floor(Number(v)||0));return String(Math.floor(v/
 function update(){const duration=Number.isFinite(audio.duration)?audio.duration:0;
  if(!seeking)seek.value=duration?String(Math.round(1000*audio.currentTime/duration)):"0";
  label.textContent=fmt(audio.currentTime)+" / "+(duration?fmt(duration):"約32分");
- play.textContent=audio.paused?"▶ "+(audio.currentTime>0?"再生を続ける":"睡眠導入をはじめる"):"Ⅱ 一時停止";
+ play.textContent=audio.paused?"▶ "+(audio.currentTime>0?"再生を続ける":"最初から再生（呼吸練習あり）"):"Ⅱ 一時停止";
  if("mediaSession" in navigator){try{navigator.mediaSession.playbackState=audio.paused?"paused":"playing";if(duration&&navigator.mediaSession.setPositionState)navigator.mediaSession.setPositionState({duration,playbackRate:1,position:Math.min(duration,audio.currentTime)})}catch(e){}}
 }
 async function toggle(){try{if(audio.paused){stopWindPreview();voiceSample.pause();voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";await audio.play();status.textContent="再生中。画面を消しても音声が続くか確認してね。"}else{audio.pause();status.textContent="一時停止中。"}}catch(e){status.textContent="音声を再生できません。ファイルの公開反映を待ってページを再読み込みしてね。詳細："+(e?.message||e)}update()}
 play.addEventListener("click",toggle);
+const COUNTDOWN_START=308.8; // Exact count_start from current 32-minute master.
+start100.addEventListener("click",()=>{
+  // On iOS call play() in the direct user gesture. Don't await metadata first;
+  // Safari may otherwise reject background audio autoplay.
+  stopWindPreview();
+  voiceSample.pause();
+  voiceTest.textContent="♫ Suiの声を試聴（短いテスト）";
+  audio.pause();
+  const target=COUNTDOWN_START;
+  const seekNow=()=>{
+    try{audio.currentTime=Math.min(target,Number.isFinite(audio.duration)?Math.max(0,audio.duration-0.2):target)}catch(e){}
+  };
+  audio.addEventListener("loadedmetadata",seekNow,{once:true});
+  seekNow();
+  audio.play().then(()=>{
+    status.textContent="呼吸練習を飛ばして、100からSuiの囁きカウントを再生中。";
+    update();
+  }).catch(e=>{
+    status.textContent="カウントから再生できませんでした。もう一度ボタンを押してください。詳細："+(e?.message||e);
+    update();
+  });
+  update();
+});
 async function jumpToWhisperCount(position, description){
   stopWindPreview();
   voiceSample.pause();
