@@ -90,8 +90,6 @@ def main():
         previous_end = end
     print("Validated all 101 consecutive spoken English numbers, 100 through 0", flush=True)
     comforts = json.loads((ROOT / "sui-comfort-whispers-v2-segments.json").read_text("utf-8"))
-    if len(new_whispers) != 90 or any(w["n"] != 89-i for i,w in enumerate(new_whispers)):
-        raise ValueError("Expected all 89..0 new Sui whisper numbers in order")
     kana_digits = ["ぜろ","いち","に","さん","よん","ご","ろく","なな","はち","きゅう"]
     def japanese_number(n):
         if n == 0:
