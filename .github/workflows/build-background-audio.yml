@@ -15,6 +15,9 @@ on:
       - 'sui-english-top.mp3'
       - 'sui-japanese-top-segments.json'
       - 'sui-english-top-segments.json'
+      - 'sui-v139-*.mp3'
+      - 'sui-count-intro-ja.mp3'
+      - 'sui-count-intro-en.mp3'
   workflow_dispatch:
 permissions:
   contents: write
