@@ -1,0 +1,49 @@
+name: Install clean continuous Sui sources for all count fixes
+on:
+  push:
+    paths:
+      - '.github/workflows/install-sui-clean-v143.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download 3 clean whisper recordings with no repeated direction tags
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/XptHGTHODR6NLeeFBO04/Ul1TQ5VBU3npqwjDhfXi/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=yC-MQZo8DqBRM3zCAGbUlMe22gU=' -o 'sui-japanese-clean101.mp3'
+          test $(wc -c < 'sui-japanese-clean101.mp3') -gt 500000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/Zrg4qx4fbs19f7jx6D76/fiYTRHaQaT4m9MR1EHBu/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=1yx27kOM1B48UBKPqT_viGl5UcY=' -o 'sui-english-clean101.mp3'
+          test $(wc -c < 'sui-english-clean101.mp3') -gt 500000
+          curl --fail --silent --show-error --location --retry 3 'https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/P8zS82t57CRIrB0eTZWJ/MEiTS6ddBr2xO7nD1mXH/content.mp3?Expires=1794117600&KeyName=assets-cdn-key-1&Signature=uLvaL83fOHc9h0D-fN9LbGH1Qsk=' -o 'sui-comfort-clean14.mp3'
+          test $(wc -c < 'sui-comfort-clean14.mp3') -gt 200000
+          python - <<'PY'
+          import json
+          for lang in ('japanese','english'):
+              x=json.load(open('sui-'+lang+'-clean101-segments.json'))
+              assert len(x)==101 and all(row['n']==100-i for i,row in enumerate(x))
+          words=json.load(open('sui-comfort-clean14-segments.json'))
+          assert len(words)==14
+          print('101 Japanese + 101 English + 14 complete comfort phrases validated')
+          PY
+      - name: Publish verified recordings
+        run: |
+          set -euo pipefail
+          cp sui-japanese-clean101.mp3 sui-english-clean101.mp3 sui-comfort-clean14.mp3 /tmp/
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui-japanese-clean101.mp3 /tmp/sui-english-clean101.mp3 /tmp/sui-comfort-clean14.mp3 .
+            git add sui-japanese-clean101.mp3 sui-english-clean101.mp3 sui-comfort-clean14.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Install clean single-whisper-tag Sui counts and all 14 comforting whispers'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
