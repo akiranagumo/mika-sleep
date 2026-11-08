@@ -58,12 +58,6 @@ def main():
     if mode not in ("japanese", "english"):
         raise ValueError("Expected japanese or english rendering mode")
     print(f"Sleep voice mode: {mode}", flush=True)
-    html = (ROOT / "index.html").read_text(encoding="utf-8")
-    # The countdown uses only Sui's dedicated whisper recording.
-    b64_intro = extract(
-        r'<audio id="introAudio"[^>]+src="data:audio/[^;]+;base64,([^"]+)"',
-        html, "introduction audio"
-    )
     whispers = json.loads((ROOT / "sui-whisper-segments.json").read_text("utf-8"))
     new_whispers = json.loads((ROOT / "sui-whisper-japanese-segments.json").read_text("utf-8"))
     old_english_whispers = json.loads((ROOT / "sui-whisper-v2-segments.json").read_text("utf-8"))
@@ -110,36 +104,28 @@ def main():
     with tempfile.TemporaryDirectory() as tempdir:
         temp = Path(tempdir)
 
-        def from_b64(name: str, encoded: str):
-            path = temp / f"{name}.mp3"
-            path.write_bytes(base64.b64decode(encoded))
-            return decode(path)
-
-        intro = from_b64("intro", b64_intro)
-        # Keep the intro intact; countdown and breath numbers use Sui's whisper.
-
         memo = {}
         def asset(filename: str):
             if filename not in memo:
                 memo[filename] = decode(ROOT / filename)
             return memo[filename]
 
-        whisper_audio = asset("sui-count-whisper.mp3")
         new_whisper_audio = asset("sui-count-whisper-japanese.mp3")
         old_english_audio = asset("sui-count-whisper-v2.mp3")
         japanese_top_audio = asset("sui-japanese-top.mp3")
         english_top_audio = asset("sui-english-top.mp3")
         comfort_audio = asset("sui-comfort-whispers-v2.mp3")
-        breath_intro = asset("sui-breath-new-intro.mp3")
-        inhale = asset("sui-breath-new-inhale.mp3")
-        exhale = asset("sui-cue-exhale.mp3")
-        repeat = asset("sui-cue-again.mp3")
-        nature = asset("sui-nature-night-clean.mp3")
+        intro = asset("sui-v139-opening.mp3")
+        breath_intro = asset("sui-v139-breath-guide.mp3")
+        inhale = asset("sui-v139-inhale.mp3")
+        exhale = asset("sui-v139-exhale.mp3")
+        repeat = asset("sui-v139-repeat.mp3")
+        nature = asset("sui-v139-nature.mp3")
+        announce = asset("sui-count-intro-ja.mp3" if mode == "japanese"
+                         else "sui-count-intro-en.mp3")
 
-        intro_duration = len(intro) / SR + 0.4
-        breath_start = intro_duration
-        nature_start = breath_start + 193
-        count_start = nature_start + 86
+        # Stable master timeline keeps the iPhone seek feature consistent.
+        count_start = 308.8
         tail_start = count_start + 1010
         total_seconds = tail_start + 600
         mix = np.zeros(round(total_seconds * SR) + SR, dtype=np.float32)
@@ -208,19 +194,34 @@ def main():
                 gain=0.57 * intensity, target_rms=0.062,
                 fade_seconds=0.09)
 
-        add(intro, 0)
-        add(breath_intro, breath_start + 4)
+        # One consistently whispered Sui voice for the opening, all cues,
+        # relaxation, every count and every gentle phrase.
+        add(intro, 0, gain=0.85, target_rms=0.075)
+        add(breath_intro, 16, gain=0.85, target_rms=0.075)
+        # Three unhurried breathing cycles. No out-of-sync spoken number
+        # overlays, no normal-voice cues; 4s inhale, brief hold, 6s exhale.
         for cycle in range(3):
-            t = breath_start + 24 + 60 * cycle
-            add(inhale, t)
-            for n in range(1, 5):
-                whisper_count(n, t + 5 + 2 * n, intensity=0.9, language="japanese")
-            add(exhale, t + 22)
-            for n in range(1, 7):
-                whisper_count(n, t + 25 + 2 * n, intensity=0.9, language="japanese")
+            t = 42 + 17 * cycle
+            add(inhale, t, gain=0.8, target_rms=0.065)
+            add(exhale, t + 6.2, gain=0.8, target_rms=0.065)
             if cycle < 2:
-                add(repeat, t + 47)
-        add(nature, nature_start + 4)
+                add(repeat, t + 12.0, gain=0.72, target_rms=0.06)
+        add(nature, 105, gain=0.78, target_rms=0.065)
+        # Quiet autogenic training continues until the countdown.
+        # Each reassuring line is complete and has room to breathe.
+        for j in range(12):
+            comfort_whisper(j, 142 + j * 12, 0.88)
+        # Countdown-only playback starts at this announcement.
+        # Exactly five seconds of silence separate the END of the spoken
+        # introduction from the first count (100), in either language.
+        announce_duration = len(announce) / SR
+        prelude_start = count_start - 5.0 - announce_duration
+        if not 2.0 <= announce_duration <= 5.0:
+            raise ValueError(f"Bad Sui countdown intro duration: {announce_duration}")
+        add(announce, prelude_start, gain=0.80, target_rms=0.07)
+        print(f"Countdown prelude: mode={mode}, begin={prelude_start:.3f}, "
+              f"voice_end={prelude_start+announce_duration:.3f}, "
+              f"number_100={count_start:.3f}, quiet_gap=5.0s",flush=True)
 
         # A whispered number every ten seconds. A personal whispered phrase
         # follows some numbers, becoming less frequent as sleep deepens.
