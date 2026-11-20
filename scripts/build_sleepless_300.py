@@ -105,19 +105,24 @@ def main():
     assert len(lengths)==301
     print("Verified 301 Sui whispered number positions, 300 through 0",flush=True)
 
-    intro=source("sui-300-intro-heartfelt-v2.mp3")
+    intro=source("sui-300-intro-informal-v3.mp3")
     assert 30<len(intro)/SR<45, "Opening must be complete, never sliced"
-    breathing=source("sui-v142-breath-guide.mp3")
+    breathing=source("sui-300-breath-informal-v3.mp3")
     inh=source("sui-v142-inhale.mp3")
     exh=source("sui-v142-exhale.mp3")
-    comfort=[source(f"sui-comfort-atomic-{i:02}.mp3") for i in range(14)]
-    # Indices 0–13 correspond to verified Japanese hypnosis and comfort phrases.
+    cuddle_short=source("sui-300-cuddle-short-v3.mp3")
+    suggestion_short=source("sui-300-suggestion-short-v3.mp3")
+    short_love_local=source("sui-300-love-short-informal-v3.mp3")
+    love_long=source("sui-300-love-informal-v3.mp3")
+    assert 2<len(cuddle_short)/SR<4.6 and 2<len(suggestion_short)/SR<4.6
+    assert 1<len(short_love_local)/SR<4.6 and 5<len(love_long)/SR<12
+    # Only informal Sui girlfriend whispers are allowed in any count interval.
     groups={
-      "mix":[0,6,9,13,3,4,7,11,8,12,2,5],
-      "lover":[9,13,6,7,11,8],
-      "cuddle":[8,9,13,3,6],
-      "suggestion":[0,1,2,3,4,5,7,10,11,12],
-      "love":[13,9,6,8],
+      "mix":[short_love_local,cuddle_short,suggestion_short],
+      "lover":[short_love_local,cuddle_short],
+      "cuddle":[cuddle_short,short_love_local],
+      "suggestion":[suggestion_short,cuddle_short],
+      "love":[short_love_local],
       "numbers":[]
     }
     for mode in MODES:
@@ -130,7 +135,7 @@ def main():
             start=78+19*cycle
             add(mix,inh,start,.55,max_seconds=6)
             add(mix,exh,start+7,.55,max_seconds=9)
-        add(mix,love_whisper,151,.52,max_seconds=12)
+        add(mix,love_long,151,.52,max_seconds=12)
         log=[]
         for k,n in enumerate(range(300,-1,-1)):
             when=INTRO_SECONDS + k*SLOT_SECONDS
@@ -138,10 +143,10 @@ def main():
             log.append({"n":n,"time_sec":when,"duration_sec":lengths[n]})
             if mode!="numbers" and n>0 and k%4==2:
                 if mode in ("mix","love") and k%16==2:
-                    clip=short_love
+                    clip=short_love_local
                 else:
                     choices=groups[mode]
-                    clip=comfort[choices[(k//4)%len(choices)]]
+                    clip=choices[(k//4)%len(choices)]
                 # No overlaps with next numeral, keep the entire whispered sentence.
                 if len(clip)/SR <=4.6:
                     add(mix,clip,when+5.1,.48,max_seconds=4.6)
