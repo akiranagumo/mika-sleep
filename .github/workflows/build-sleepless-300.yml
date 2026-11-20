@@ -30,6 +30,9 @@ jobs:
           import urllib.request
           from pathlib import Path
           sources={
+            "sui-300-intro-heartfelt-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/Outx02lEs89AzXMDIhhk/MKGx3iZPVpUK0T62TOID/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=VD9oJuoHH4dHpEDIq5fdrTS2BLc=",
+            "sui-300-love-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/9uXIO2R7SncCsUWr5e5W/gDHx45V6l0MEAcOMMze2/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=eUdAM8b1pymKX4ELs1jmbotB0sA=",
+            "sui-300-love-short-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/v5Q3bQBZ1XUGKCwTsve1/Ii62M7iSibujFyKdR9oA/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=5ug2XBMjn-I0oOtJO_GZwNk-Kn0=",
             "sui-300-intro-preview.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/SXDlpZeCJtVuUuAVlhU6/lCCxkEb22tPXtN3Bj1GU/content.mp3?Expires=1795186800&KeyName=assets-cdn-key-1&Signature=fvAhYr9kc51-8dQZyjn5hq8V2HA=",
             "sui-300-prefix-200.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/taBPv4OuNlnuaQsZeFBM/2MX6AiY5DvxXwNuMJ8rV/content.mp3?Expires=1795186800&KeyName=assets-cdn-key-1&Signature=aX4hAUtayFysww0KBZ0fzJGWsEI=",
             "sui-300-prefix-300.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/2G6poLcdl6iomRJt6KQP/Gr4g4ALMxXsudT74MBiK/content.mp3?Expires=1795186800&KeyName=assets-cdn-key-1&Signature=4rGuAEbKoPl8eXWqb2qh8X5YKO0=",
@@ -49,7 +52,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/sleepless300
           cp sleepless-300-{mix,lover,cuddle,suggestion,love,numbers}.{mp3,json} /tmp/sleepless300/
-          cp sui-300-{intro-preview,prefix-200,prefix-300,love}.mp3 /tmp/sleepless300/
+          cp sui-300-{intro-preview,prefix-200,prefix-300,love,intro-heartfelt-v2,love-v2,love-short-v2}.mp3 /tmp/sleepless300/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           for attempt in 1 2 3; do
