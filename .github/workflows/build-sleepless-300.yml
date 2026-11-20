@@ -21,9 +21,10 @@ jobs:
           python-version: '3.11'
       - name: Install MP3 encoder and scientific dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
-          pip install --disable-pip-version-check "numpy>=1.26,<3"
+
+
+
+          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "imageio-ffmpeg>=0.6"
       - name: Download four Sui V4 genuine whisper source recordings
         run: |
           python - <<'PY'
