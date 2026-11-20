@@ -7,9 +7,9 @@
 <label for="mode">今夜のSui</label><select id="mode"><option value="mix">ロングナイト — 全部を組み合わせる</option><option value="lover">恋人の囁き — そばにいるよ</option><option value="cuddle">添い寝 — 安心して眠ろう</option><option value="suggestion">睡眠暗示 — 身体と心をゆるめて</option><option value="love">愛してる — 甘い囁きを多めに</option><option value="numbers">数字だけ — 静かなSuiカウント</option></select>
 <button class="button" id="start">▶ Suiの導入から再生</button>
 <div class="two"><button class="button secondary" id="pause">Ⅱ 一時停止</button><button class="button secondary" id="restart">↶ 最初に戻る</button></div>
-<div id="phase">現在：Suiの囁きと呼吸の誘導</div><audio id="audio" class="audio" preload="metadata" controls playsinline src="./sleepless-300-mix.mp3?v=2"></audio><div id="status" role="status">再生ボタンを押してね</div><div class="time" id="elapsed">00:00 / 約53分</div>
+<div id="phase">現在：Suiの囁きと呼吸の誘導</div><audio id="audio" class="audio" preload="metadata" controls playsinline src="./sleepless-300-mix.mp3?v=3"></audio><div id="status" role="status">再生ボタンを押してね</div><div class="time" id="elapsed">00:00 / 約53分</div>
 <p class="note">すべての発話は録音済みのSuiの囁き音声を使います。iPhoneの画面を閉じても再生しやすいよう、モード別に1本のMP3にまとめる方式です。モード変更中は音声を切り替えるため、まれに一時停止します。Suiの囁き音源が読み込めない場合、機械音声には置き換えません。公開前の音源を確認する際は、<a href="./v13.html">従来のSui版</a>をご利用ください。Safariを閉じた場合やiOSの制限によっては停止することがあります。</p></main>
-<script>(()=>{"use strict";const $=s=>document.getElementById(s),audio=$("audio"),mode=$("mode");let switching=0;const INTRO=170,STEP=10;const url=()=>("./sleepless-300-"+mode.value+".mp3?v=2");
+<script>(()=>{"use strict";const $=s=>document.getElementById(s),audio=$("audio"),mode=$("mode");let switching=0;const INTRO=170,STEP=10;const url=()=>("./sleepless-300-"+mode.value+".mp3?v=3");
 const fmt=v=>{v=Math.max(0,Math.floor(v||0));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
 function update(){const t=audio.currentTime||0,d=audio.duration||0;
 let n=t<INTRO?300:Math.max(0,300-Math.min(300,Math.floor((t-INTRO+.05)/STEP)));
