@@ -31,6 +31,14 @@ jobs:
           import urllib.request
           from pathlib import Path
           sources={
+            "sui-300-intro-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/6MQaT0gYHsEgVehte7JT/K3zDJvGeOSbXsWf677Qu/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=I9-yCHVlmFL3yTDVQVG8-xtzvxA=",
+            "sui-300-breath-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/j8O72p0iFCBRQJKZ6LAc/ij6f1W8V831NrjzyaBjT/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=D1e_N8Ws3jlMoI0xWk_N-v5bkwQ=",
+            "sui-300-love-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/pJuGuXuZwaXKQ7jmQBmx/9EgBR9E7DDK6R2Iw6VIh/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=xoZJBgGJnNAjnzBVAsKCrixuZLE=",
+            "sui-300-cuddle-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/IRfBKIReWeNJCG8cOV5R/aCvufpCrLnODLQORuQNt/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=QWRqr0imgVSejCZadi0uWY9dCnw=",
+            "sui-300-suggestion-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/zJk954NhKAXObK7yf1g2/JFdftmpGoAJas1Cu0c8x/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=22JLGrdyxHPWYniD3Qsvh7aUZyU=",
+            "sui-300-love-short-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/Q7j8A7sApHbgfjKG5x2L/33oHvpkkqxSShfAQWhy2/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=ChiOC40jPmZMwyzpCH2dKNtzjec=",
+            "sui-300-cuddle-short-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/hU2zsDqWU5XlUHF6P4Qa/f4JKA3Me6e3PSqNyr7XN/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=70REJnfE7FlepyMVztOAsGBBV88=",
+            "sui-300-suggestion-short-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/b31yosPFQuNzF3vf7u4s/96IzhvPHJzvXI5ENYoAl/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=0r4dsq-Av7lXE1OEm0Gb8zwAYKg=",
             "sui-300-intro-heartfelt-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/Outx02lEs89AzXMDIhhk/MKGx3iZPVpUK0T62TOID/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=VD9oJuoHH4dHpEDIq5fdrTS2BLc=",
             "sui-300-love-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/9uXIO2R7SncCsUWr5e5W/gDHx45V6l0MEAcOMMze2/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=eUdAM8b1pymKX4ELs1jmbotB0sA=",
             "sui-300-love-short-v2.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/v5Q3bQBZ1XUGKCwTsve1/Ii62M7iSibujFyKdR9oA/content.mp3?Expires=1795194000&KeyName=assets-cdn-key-1&Signature=5ug2XBMjn-I0oOtJO_GZwNk-Kn0=",
@@ -53,7 +61,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/sleepless300
           cp sleepless-300-{mix,lover,cuddle,suggestion,love,numbers}.{mp3,json} /tmp/sleepless300/
-          cp sui-300-{intro-preview,prefix-200,prefix-300,love,intro-heartfelt-v2,love-v2,love-short-v2}.mp3 /tmp/sleepless300/
+          cp sui-300-*.mp3 /tmp/sleepless300/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           for attempt in 1 2 3; do
