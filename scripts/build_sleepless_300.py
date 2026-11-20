@@ -156,7 +156,7 @@ def main():
         if p.returncode:raise RuntimeError("MP3 encode failed "+mode)
         probe=subprocess.run([FFMPEG,"-hide_banner","-i",str(out)],
             capture_output=True,text=True)
-        match=re.search(r"Duration: (\\d+):(\\d+):(\\d+\\.\\d+)",probe.stderr)
+        match=re.search(r"Duration: (\d+):(\d+):(\d+\.\d+)",probe.stderr)
         if not match:raise ValueError("MP3 duration unavailable "+mode)
         hh,mm,ss=match.groups()
         duration=int(hh)*3600+int(mm)*60+float(ss)
