@@ -56,10 +56,10 @@ def trim(a):
     return a[begin:end]
 
 prefix200=trim(source("sui-300-prefix-200.mp3"))
-prefix300=trim(source("sui-300-prefix-300.mp3"))
+prefix300=trim(source("sui-300-300-clean-v4.mp3"))
 love_whisper=source("sui-300-love-v2.mp3")
 short_love=source("sui-300-love-short-v2.mp3")
-assert .35<len(prefix200)/SR<7 and .35<len(prefix300)/SR<7
+assert .35<len(prefix200)/SR<7 and .35<len(prefix300)/SR<1.8, "300 must be one short complete Sui utterance"
 assert 5.0<len(love_whisper)/SR<12
 assert 1.0<len(short_love)/SR<4.5
 
@@ -103,6 +103,7 @@ def main():
         lengths[n]=round(length,3)
     assert list(lengths)==list(range(300,-1,-1))
     assert len(lengths)==301
+    assert lengths[300]<1.8, "Reject repeated or overly long 300 audio"
     print("Verified 301 Sui whispered number positions, 300 through 0",flush=True)
 
     intro=source("sui-300-intro-informal-v3.mp3")
