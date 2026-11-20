@@ -55,9 +55,11 @@ def trim(a):
 
 prefix200=trim(source("sui-300-prefix-200.mp3"))
 prefix300=trim(source("sui-300-prefix-300.mp3"))
-love_whisper=trim(source("sui-300-love.mp3"))
+love_whisper=source("sui-300-love-v2.mp3")
+short_love=source("sui-300-love-short-v2.mp3")
 assert .35<len(prefix200)/SR<7 and .35<len(prefix300)/SR<7
-assert .35<len(love_whisper)/SR<9
+assert 5.0<len(love_whisper)/SR<12
+assert 1.0<len(short_love)/SR<4.5
 
 # Composite numbers 101–299 use the same Sui genuine whispered recordings,
 # with the natural pronounced hundred prefix followed by Sui's whispered 1–99.
@@ -101,11 +103,11 @@ def main():
     assert len(lengths)==301
     print("Verified 301 Sui whispered number positions, 300 through 0",flush=True)
 
-    intro=source("sui-300-intro-preview.mp3")
+    intro=source("sui-300-intro-heartfelt-v2.mp3")
+    assert 30<len(intro)/SR<45, "Opening must be complete, never sliced"
     breathing=source("sui-v142-breath-guide.mp3")
     inh=source("sui-v142-inhale.mp3")
     exh=source("sui-v142-exhale.mp3")
-    nature=source("sui-v142-nature.mp3")
     comfort=[source(f"sui-comfort-atomic-{i:02}.mp3") for i in range(14)]
     # Indices 0–13 correspond to verified Japanese hypnosis and comfort phrases.
     groups={
@@ -118,16 +120,15 @@ def main():
     }
     for mode in MODES:
         mix=np.zeros(int(TRACK_SECONDS*SR),dtype=np.float32)
-        # Every opening word and breath instruction is the original Sui voice.
-        # Preview has first counts near its end; use only opening <=28 sec.
-        add(mix,intro[:int(28*SR)],0,.78)
-        add(mix,breathing,33,.65)
+        # Entire heartfelt Sui introduction: never slice it at an arbitrary timestamp.
+        # Spoken sections get dedicated non-overlapping windows.
+        add(mix,intro,0,.78,max_seconds=45)
+        add(mix,breathing,48,.65,max_seconds=25)
         for cycle in range(3):
-            start=67+18*cycle
+            start=78+19*cycle
             add(mix,inh,start,.55,max_seconds=6)
             add(mix,exh,start+7,.55,max_seconds=9)
-        add(mix,nature,128,.38,max_seconds=45)
-        add(mix,love_whisper,149,.52,max_seconds=9)
+        add(mix,love_whisper,151,.52,max_seconds=12)
         log=[]
         for k,n in enumerate(range(300,-1,-1)):
             when=INTRO_SECONDS + k*SLOT_SECONDS
@@ -135,7 +136,7 @@ def main():
             log.append({"n":n,"time_sec":when,"duration_sec":lengths[n]})
             if mode!="numbers" and n>0 and k%4==2:
                 if mode in ("mix","love") and k%16==2:
-                    clip=love_whisper
+                    clip=short_love
                 else:
                     choices=groups[mode]
                     clip=comfort[choices[(k//4)%len(choices)]]
@@ -158,5 +159,5 @@ def main():
         if int(info["size"])<2000000:raise ValueError("Too small "+mode)
         (ROOT/f"sleepless-300-{mode}.json").write_text(json.dumps(log,ensure_ascii=False),encoding="utf-8")
         print("PASS",mode,"duration",duration,"bytes",info["size"],flush=True)
-    print("All six Sui-only modes mastered; all 301 numbers present in every track")
+    print("All six Sui-only modes mastered; all 301 numbers present in every track; complete heartfelt intro and clean love phrases")
 if __name__=="__main__":main()
