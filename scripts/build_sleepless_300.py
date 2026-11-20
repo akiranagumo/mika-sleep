@@ -2,7 +2,9 @@
 """SLEEPLESS 300: render one continuous MP3 per mode, only pre-recorded Sui whispers.
 All 301 numbers are validated. No browser TTS, no client-side timing."""
 from __future__ import annotations
-import json, math, subprocess, sys
+import json, math, subprocess, sys, re
+import imageio_ffmpeg
+FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 from functools import lru_cache
 from pathlib import Path
 import numpy as np
@@ -15,7 +17,7 @@ TRACK_SECONDS = INTRO_SECONDS + 301 * SLOT_SECONDS + 18
 MODES = ("mix", "lover", "cuddle", "suggestion", "love", "numbers")
 
 def decode(path):
-    raw = subprocess.check_output(["ffmpeg","-nostdin","-hide_banner","-loglevel","error",
+    raw = subprocess.check_output([FFMPEG,"-nostdin","-hide_banner","-loglevel","error",
       "-i",str(path),"-ac","1","-ar",str(SR),"-f","f32le","pipe:1"])
     a = np.frombuffer(raw,dtype="<f4").copy()
     if len(a)<SR//5: raise ValueError("Empty voice: "+str(path))
@@ -147,17 +149,21 @@ def main():
         peak=np.max(np.abs(mix))
         if peak>0.89: mix*=.89/peak
         out=ROOT/f"sleepless-300-{mode}.mp3"
-        p=subprocess.Popen(["ffmpeg","-y","-nostdin","-hide_banner","-loglevel","error",
+        p=subprocess.Popen([FFMPEG,"-y","-nostdin","-hide_banner","-loglevel","error",
            "-f","f32le","-ar",str(SR),"-ac","1","-i","pipe:0",
            "-c:a","libmp3lame","-b:a","64k",str(out)],stdin=subprocess.PIPE)
         p.communicate(mix.astype("<f4").tobytes())
         if p.returncode:raise RuntimeError("MP3 encode failed "+mode)
-        info=json.loads(subprocess.check_output(["ffprobe","-v","error",
-            "-show_format","-of","json",str(out)]))["format"]
-        duration=float(info["duration"])
+        probe=subprocess.run([FFMPEG,"-hide_banner","-i",str(out)],
+            capture_output=True,text=True)
+        match=re.search(r"Duration: (\\d+):(\\d+):(\\d+\\.\\d+)",probe.stderr)
+        if not match:raise ValueError("MP3 duration unavailable "+mode)
+        hh,mm,ss=match.groups()
+        duration=int(hh)*3600+int(mm)*60+float(ss)
+        size=out.stat().st_size
         if not TRACK_SECONDS-2<duration<TRACK_SECONDS+2:raise ValueError((mode,duration))
-        if int(info["size"])<2000000:raise ValueError("Too small "+mode)
+        if size<2000000:raise ValueError("Too small "+mode)
         (ROOT/f"sleepless-300-{mode}.json").write_text(json.dumps(log,ensure_ascii=False),encoding="utf-8")
-        print("PASS",mode,"duration",duration,"bytes",info["size"],flush=True)
+        print("PASS",mode,"duration",duration,"bytes",size,flush=True)
     print("All six Sui-only modes mastered; all 301 numbers present in every track; complete heartfelt intro and clean love phrases")
 if __name__=="__main__":main()
