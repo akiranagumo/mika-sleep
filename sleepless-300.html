@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a1228"><title>SLEEPLESS 300 — 添い寝の囁き</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#324262,#151f39 55%,#080f1e);color:#f2e6dd;min-height:100svh;padding:20px 14px 35px}
+main{max-width:510px;margin:auto;background:#17243aca;border:1px solid #cbb7aa55;padding:24px 19px;border-radius:28px;box-shadow:0 20px 80px #0008}
+.brand{text-align:center;letter-spacing:.24em;color:#d7c5dc;font-size:12px}.moon{height:105px;width:105px;margin:23px auto;background:radial-gradient(circle at 32% 32%,#fffcde,#e9c4aa 60%,#d79f9f);border-radius:50%;box-shadow:0 0 40px #d1b6bd66;position:relative}
+.moon:after{content:"";position:absolute;inset:-8px -18px 10px 28px;border-radius:50%;background:#202c48}
+h1{text-align:center;font-size:24px;font-weight:500;margin:0}p{text-align:center;color:#d1cad6;line-height:1.8;font-size:13px}
+.big{text-align:center;font-variant-numeric:tabular-nums;font-size:71px;font-weight:200;letter-spacing:.04em;margin:14px 0 0;color:#fff4e5}
+.mini{text-align:center;font-size:12px;color:#c3b4c9;margin-bottom:22px}
+label{display:block;margin:15px 0 7px;font-size:13px;color:#e7d7da}
+select,input[type=range]{width:100%}select{border:1px solid #7984a4;background:#1c2b46;color:#fff2e5;padding:13px;border-radius:12px;font-size:15px}
+input[type=range]{accent-color:#e6bfc6}button{width:100%;border:0;padding:17px;border-radius:16px;margin-top:12px;font-size:17px;font-weight:650;background:linear-gradient(110deg,#f2d5d6,#c9b9ea);color:#202139}
+.secondary{background:#28344e;color:#e2d5e2;border:1px solid #7c86a1;padding:12px;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two button{margin-top:12px}
+#phrase{min-height:52px;text-align:center;color:#f3cfdb;font-size:15px;line-height:1.7;margin:14px 0}
+#status{font-size:12px;text-align:center;line-height:1.6;color:#c8cce0;min-height:32px}
+.note{font-size:11px;color:#b1b5c5;border-top:1px solid #ffffff24;padding-top:17px;margin-top:15px;line-height:1.8;text-align:left}
+</style></head><body><main><div class="brand">SLEEPLESS · LONG NIGHT</div><div class="moon"></div><h1>300から、眠りの奥へ</h1><p>恋人が隣にいるような、静かな囁き。<br>数字をひとつずつ、ゆっくりと。</p>
+<div class="big" id="number">300</div><div class="mini" id="remaining">300 → 0 · 約50分</div>
+<label for="mode">囁きのスタイル</label><select id="mode">
+<option value="lover">恋人の囁き — 愛してる、そばにいるよ</option>
+<option value="cuddle">添い寝 — 手をつないで、安心してね</option>
+<option value="suggestion">眠りの暗示 — 体と心をゆるめる</option>
+<option value="love">愛してる — 甘い言葉を多めに</option>
+<option value="mix" selected>すべてを混ぜる — ロングナイト</option>
+<option value="numbers">数字だけ — 静かなカウント</option></select>
+<label for="pace">カウント間隔</label><select id="pace">
+<option value="10" selected>10秒／数字（約50分）</option><option value="12">12秒／数字（約60分）</option><option value="15">15秒／数字（約75分）</option></select>
+<label for="voice">声（端末で利用可能な日本語の声）</label><select id="voice"><option value="">日本語の声を自動選択</option></select>
+<label for="wind">風の音 <span id="windValue">0%</span></label><input type="range" min="0" max="20" value="0" id="wind">
+<button id="start">▶ 300から囁きを始める</button><div class="two"><button class="secondary" id="pause">Ⅱ 一時停止</button><button class="secondary" id="reset">↶ 300に戻す</button></div>
+<div id="phrase">「今夜は、ずっとそばにいるよ」</div><div id="status" aria-live="polite">再生ボタンを押してね</div>
+<div class="note">このバージョンは300から0まで数字を順番に管理する試作版です。端末の日本語音声読み上げ機能を使用するため、Suiの収録声そのものではありません。iPhoneで画面をロックすると、音声やカウントが停止する場合があります。寝る前は端末を充電し、必要に応じて画面を開いたまま使用してください。就寝中にイヤホンのコードが絡まないようご注意ください。</div>
+</main><script>
+(()=>{"use strict";
+const $=id=>document.getElementById(id),synth=window.speechSynthesis;
+const groups={
+lover:["愛してるよ。今夜は、そばにいるね。","今日もあなたが大好き。","頑張らなくていいよ。私がここにいるから。","あなたのぬくもりを感じながら、眠ろうね。","おやすみ。大切な人。"],
+cuddle:["そっと手をつないでいるよ。","肩の力を抜いてね。隣にいるよ。","あたたかい毛布に包まれているね。","呼吸を合わせて、ゆっくり眠ろう。","安心して。静かな夜だよ。"],
+suggestion:["息を吐くたび、全身が少しずつゆるんでいく。","まぶたが、自然に重くなっていく。","もう考えなくていい。休んでいいんだよ。","手のひらも、肩も、ゆっくりほどける。","眠りが来ても来なくても、このまま休もう。"],
+love:["愛してる。何度でも伝えるね。","あなたが大好き。おやすみ。","ずっと大切に想っているよ。","そばにいるよ。愛してる。","あなたと過ごす夜が、いちばん好き。"]
+};
+let count=300,running=false,paused=false,session=0,nextTimer=null,windCtx=null,noise=null,windGain=null,slotIndex=0,voices=[];
+const display=()=>{$("number").textContent=count;$("remaining").textContent="300 → 0 · 残り約"+Math.ceil(Math.max(0,count)*Number($("pace").value)/60)+"分"};
+function loadVoices(){if(!synth)return;voices=synth.getVoices().filter(v=>v.lang.toLowerCase().startsWith("ja"));let chosen=$("voice").value;$("voice").innerHTML='<option value="">日本語の声を自動選択</option>';voices.forEach(v=>{let o=document.createElement("option");o.value=v.voiceURI;o.textContent=v.name+" ("+v.lang+")";$("voice").appendChild(o)});$("voice").value=voices.some(v=>v.voiceURI===chosen)?chosen:""}
+if(synth){loadVoices();synth.addEventListener?.("voiceschanged",loadVoices)}
+function speak(text){return new Promise(resolve=>{if(!synth){resolve();return}const u=new SpeechSynthesisUtterance(text);u.lang="ja-JP";u.rate=.68;u.pitch=1.13;u.volume=.88;u.voice=voices.find(v=>v.voiceURI===$("voice").value)||voices.find(v=>/female|kyoko|siri|nanami|haruka|女性/i.test(v.name))||voices[0]||null;let done=false;const finish=()=>{if(!done){done=true;resolve()}};u.onend=finish;u.onerror=finish;try{synth.speak(u)}catch(e){finish()}setTimeout(finish,9000)})}
+const wait=ms=>new Promise(resolve=>{nextTimer=setTimeout(resolve,ms)});
+function phraseAt(i){const mode=$("mode").value;if(mode==="numbers")return "";let cats=mode==="mix"?["lover","cuddle","suggestion","love"]: [mode];let group=cats[Math.floor(i/3)%cats.length];let arr=groups[group];return arr[Math.floor(i/12)%arr.length]}
+async function run(id){let first=true;while(running&&id===session&&count>=0){if(paused){await wait(100);continue}
+const thisCount=count;const start=performance.now();let words=""+thisCount;
+const addPhrase=thisCount>0&&thisCount%3===0&&$("mode").value!=="numbers";
+const phrase=addPhrase?phraseAt(slotIndex):"";
+$("phrase").textContent=phrase?"「"+phrase+"」":"静かに、ゆっくり…";
+$("status").textContent="囁きカウント中 · "+$("mode").selectedOptions[0].textContent;
+await speak(words);
+if(!running||id!==session)break;
+if(phrase&& !paused){await wait(450);if(!running||id!==session)break;await speak(phrase)}
+if(!running||id!==session)break;
+if(thisCount===0){running=false;$("status").textContent="0まで数え終わりました。おやすみなさい。";break}
+let elapsed=performance.now()-start;let delay=Math.max(250,Number($("pace").value)*1000-elapsed);
+while(delay>0&&running&&id===session){if(paused){await wait(150);continue}const chunk=Math.min(150,delay);await wait(chunk);delay-=chunk}
+if(!running||id!==session)break;
+count=thisCount-1;slotIndex++;display();first=false}
+}
+function halt(){running=false;paused=false;session++;clearTimeout(nextTimer);synth?.cancel();$("pause").textContent="Ⅱ 一時停止"}
+$("start").addEventListener("click",()=>{halt();count=300;slotIndex=0;display();running=true;paused=false;const id=++session;startWind();run(id)});
+$("pause").addEventListener("click",()=>{if(!running)return;paused=!paused;if(paused){synth?.pause();$("pause").textContent="▶ 続きを再生";$("status").textContent="一時停止中"}else{synth?.resume();$("pause").textContent="Ⅱ 一時停止";$("status").textContent="再生中"}});
+$("reset").addEventListener("click",()=>{halt();count=300;slotIndex=0;display();$("phrase").textContent="「今夜は、ずっとそばにいるよ」";$("status").textContent="300に戻しました";stopWind()});
+function startWind(){if(!windCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;windCtx=new AC();const size=windCtx.sampleRate*2;let buf=windCtx.createBuffer(1,size,windCtx.sampleRate),d=buf.getChannelData(0);let last=0;for(let i=0;i<size;i++){last=(last+(.025*(Math.random()*2-1)))/1.025;d[i]=last*3}noise=windCtx.createBufferSource();noise.buffer=buf;noise.loop=true;let low=windCtx.createBiquadFilter();low.type="lowpass";low.frequency.value=420;windGain=windCtx.createGain();noise.connect(low).connect(windGain).connect(windCtx.destination);noise.start()}windCtx.resume();updateWind()}
+function updateWind(){$("windValue").textContent=$("wind").value+"%";if(windGain)windGain.gain.setTargetAtTime(Number($("wind").value)/100,windCtx.currentTime,.2)}
+function stopWind(){if(windGain)windGain.gain.setTargetAtTime(0,windCtx.currentTime,.2)}
+$("wind").addEventListener("input",()=>{if(Number($("wind").value)>0)startWind();updateWind()});
+$("pace").addEventListener("change",display);display();
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&running)$("status").textContent="画面ロック中は端末の制限により停止することがあります"});
+})();
+</script></body></html>
