@@ -31,6 +31,7 @@ jobs:
           import urllib.request
           from pathlib import Path
           sources={
+            "sui-300-300-clean-v4.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/Z4JAOY6zIEFNq3crXYgE/VSBtXmx933risr5SAjyo/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=A-5SrB7Jn6LK755dO1B0RGcyDZ8=",
             "sui-300-intro-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/6MQaT0gYHsEgVehte7JT/K3zDJvGeOSbXsWf677Qu/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=I9-yCHVlmFL3yTDVQVG8-xtzvxA=",
             "sui-300-breath-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/j8O72p0iFCBRQJKZ6LAc/ij6f1W8V831NrjzyaBjT/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=D1e_N8Ws3jlMoI0xWk_N-v5bkwQ=",
             "sui-300-love-informal-v3.mp3":"https://elevenlabsusercontent.com/database/workspace/25b050645c9741d1b20b9d9fe4b4edab/content_generation/pJuGuXuZwaXKQ7jmQBmx/9EgBR9E7DDK6R2Iw6VIh/content.mp3?Expires=1795197600&KeyName=assets-cdn-key-1&Signature=xoZJBgGJnNAjnzBVAsKCrixuZLE=",
