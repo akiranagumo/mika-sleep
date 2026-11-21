@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15243b"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>SLEEPLESS DAY — 昼休みの休息</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0,#526079 0%,#273650 47%,#111b30 100%);color:#f8eede;padding:16px 14px 34px}
+main{max-width:530px;margin:auto;background:#192a40e8;border:1px solid #b8c6ca77;border-radius:28px;padding:26px 22px;box-shadow:0 22px 90px #0007}
+.brand{letter-spacing:.2em;text-align:center;color:#e6d5b6;font-size:12px}
+.circle{height:104px;width:104px;margin:26px auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7d3,#e4c4a7 65%,#a8b8c9);box-shadow:0 0 38px #eed6b254}
+h1{text-align:center;font-weight:500;font-size:24px;margin:0 0 8px}
+.tag{text-align:center;color:#d1dce5;font-size:14px;line-height:1.9;margin:0 auto 20px}
+.notice{text-align:center;color:#eddbc0;font-size:13px;line-height:1.75;border:1px solid #b9bfd54c;border-radius:12px;padding:12px;margin:14px 0 20px}
+label{display:block;font-size:13px;margin:16px 0 8px;color:#eae0d2}
+select{width:100%;background:#283a54;color:#fff1dd;padding:14px 12px;border:1px solid #a6b8c6;border-radius:12px;font-size:15px}
+button{width:100%;padding:18px;border:0;border-radius:17px;margin-top:18px;font-size:17px;font-weight:750;color:#16253d;background:linear-gradient(120deg,#f7e4bb,#d4c39c)}
+button.secondary{padding:12px;font-size:14px;color:#f5e9d2;background:#283950;border:1px solid #8f9cab;margin-top:10px}
+audio{display:block;width:100%;margin-top:23px}
+#time{text-align:center;font-variant-numeric:tabular-nums;font-size:14px;color:#d7dce4;margin:12px 0}
+#status{min-height:35px;color:#f0d9b6;text-align:center;font-size:12px;line-height:1.7;margin-top:15px}
+.note{border-top:1px solid #ffffff30;margin-top:22px;padding-top:16px;color:#b8c5d3;font-size:12px;line-height:1.9}a{color:#f5d8a2}
+</style></head><body><main>
+<div class="brand">☀ SLEEPLESS DAY · SUI</div><div class="circle" aria-hidden="true"></div>
+<h1>昼休み、少しだけ休もう</h1>
+<p class="tag">眠れなくても、いいよ。<br>仕事のことは、今だけ置いておこう。<br>Suiの声を聴きながら、静かに横になってね。</p>
+<div class="notice">今は眠ろうと頑張らなくていい。<br>呼吸を整えて、体を休ませるだけでいいよ。</div>
+<label for="minutes">休息時間</label>
+<select id="minutes"><option value="10">10分 — 緊張をほどく短い休憩</option><option value="15" selected>15分 — 昼のおすすめ</option><option value="20">20分 — 少し眠れたらうれしい</option></select>
+<button id="start">▶ Suiと休息をはじめる</button>
+<button class="secondary" id="pause">Ⅱ 一時停止 / 再開</button>
+<audio id="audio" controls playsinline preload="metadata" src="./sleepless-day-15.mp3?v=1"></audio>
+<div id="time">00:00 / 15:00</div><div id="status">Suiの夜Ver.1.4.7の囁き声をそのまま使った昼用音声</div>
+<p class="note">昼用は夜のVer.1.4.7の元音声をそのまま利用し、10・15・20分でやさしく音が小さくなるようにしたものです。起こすアラームは鳴りません。午後の診療に戻る時刻は、必要ならiPhone側で別途アラームを設定してください。画面ロック中の再生はiOSや設定により停止する場合があります。眠れなくても無理に続けなくて大丈夫。<a href="./v13.html">いつもの夜版</a>も開けます。</p>
+</main><script>(()=>{"use strict";const audio=document.getElementById("audio"),select=document.getElementById("minutes"),status=document.getElementById("status"),time=document.getElementById("time");
+const fmt=t=>{t=Math.floor(Math.max(0,t||0));return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0")};
+function update(){time.textContent=fmt(audio.currentTime)+" / "+fmt((audio.duration&&Number.isFinite(audio.duration))?audio.duration:Number(select.value)*60)}
+function change(){audio.pause();audio.src="./sleepless-day-"+select.value+".mp3?v=1";audio.load();update();status.textContent=select.value+"分の休息に切り替えたよ"}
+select.addEventListener("change",change);
+async function play(){try{await audio.play();status.textContent="目を閉じて、今は休もう"}catch(e){status.textContent="音声を再生できなかったよ。通信やMP3の公開状況を確認してね"}}
+document.getElementById("start").addEventListener("click",()=>{audio.currentTime=0;play()});
+document.getElementById("pause").addEventListener("click",()=>{if(audio.paused)play();else{audio.pause();status.textContent="一時停止中"}});
+audio.addEventListener("timeupdate",update);audio.addEventListener("loadedmetadata",update);audio.addEventListener("ended",()=>{status.textContent="休息はおしまい。眠れなくても、休めたらそれでいいよ"});
+audio.addEventListener("error",()=>{status.textContent="昼用音源を読み込めないよ。公開状況を確認してね"});
+if("mediaSession" in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:"SLEEPLESS DAY — Suiの昼休み",artist:"Sui · AKIRA SLEEP"});navigator.mediaSession.setActionHandler("play",()=>audio.play());navigator.mediaSession.setActionHandler("pause",()=>audio.pause())}catch(e){}}
+update()})();</script></body></html>
