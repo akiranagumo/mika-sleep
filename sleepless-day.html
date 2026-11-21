@@ -25,17 +25,17 @@ audio{display:block;width:100%;margin-top:23px}
 <p class="tag">眠れなくても、いいよ。<br>仕事のことは、今だけ置いておこう。<br>Suiの声を聴きながら、静かに横になってね。</p>
 <div class="notice">今は眠ろうと頑張らなくていい。<br>呼吸を整えて、体を休ませるだけでいいよ。</div>
 <label for="minutes">休息時間</label>
-<select id="minutes"><option value="10">10分 — 緊張をほどく短い休憩</option><option value="15" selected>15分 — 昼のおすすめ</option><option value="20">20分 — 少し眠れたらうれしい</option></select>
-<button id="start">▶ Suiと休息をはじめる</button>
+<select id="minutes"><option value="10">10分 — 緊張をほどく短い休憩</option><option value="15">15分 — 短い休息</option><option value="20">20分 — 少し眠れたらうれしい</option><option value="30" selected>30分 — 物語と自然音に包まれる</option></select>
+<label for="nature">30分版の自然音</label><select id="nature"><option value="nature-rich" selected>豊かに — 鳥・小川・雨の音</option><option value="balanced">控えめに — 囁き優先</option></select><button id="start">▶ Suiと休息をはじめる</button>
 <button class="secondary" id="pause">Ⅱ 一時停止 / 再開</button>
-<audio id="audio" controls playsinline preload="metadata" src="./sleepless-day-15.mp3?v=1"></audio>
-<div id="time">00:00 / 15:00</div><div id="status">Suiの夜Ver.1.4.7の囁き声をそのまま使った昼用音声</div>
-<p class="note">昼用は夜のVer.1.4.7の元音声をそのまま利用し、10・15・20分でやさしく音が小さくなるようにしたものです。起こすアラームは鳴りません。午後の診療に戻る時刻は、必要ならiPhone側で別途アラームを設定してください。画面ロック中の再生はiOSや設定により停止する場合があります。眠れなくても無理に続けなくて大丈夫。<a href="./v13.html">いつもの夜版</a>も開けます。</p>
-</main><script>(()=>{"use strict";const audio=document.getElementById("audio"),select=document.getElementById("minutes"),status=document.getElementById("status"),time=document.getElementById("time");
+<audio id="audio" controls playsinline preload="metadata" src="./sleepless-day-30-nature-rich.mp3?v=1"></audio>
+<div id="time">00:00 / 30:00</div><div id="status">30分版：Suiの囁きと森の鳥・小川・雨の実録音</div>
+<p class="note">30分版は数字のカウントを使わず、Suiの既存の囁きと、森林の鳥・小川・雨の実録音を組み合わせた昼用の休息作品です。現在は新規の長編朗読ではなく、既存のSuiの言葉を自然音と交互に聴く構成です。10・15・20分版は夜用音源の短縮版です。起こすアラームは鳴りません。午後の診療に戻る時刻は、必要ならiPhone側で別途アラームを設定してください。画面ロック中の再生はiOSや設定により停止する場合があります。眠れなくても無理に続けなくて大丈夫。<a href="./v13.html">いつもの夜版</a>も開けます。</p>
+</main><script>(()=>{"use strict";const audio=document.getElementById("audio"),select=document.getElementById("minutes"),nature=document.getElementById("nature"),status=document.getElementById("status"),time=document.getElementById("time");
 const fmt=t=>{t=Math.floor(Math.max(0,t||0));return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0")};
 function update(){time.textContent=fmt(audio.currentTime)+" / "+fmt((audio.duration&&Number.isFinite(audio.duration))?audio.duration:Number(select.value)*60)}
-function change(){audio.pause();audio.src="./sleepless-day-"+select.value+".mp3?v=1";audio.load();update();status.textContent=select.value+"分の休息に切り替えたよ"}
-select.addEventListener("change",change);
+function change(){audio.pause();audio.src=select.value==="30"?"./sleepless-day-30-"+nature.value+".mp3?v=1":"./sleepless-day-"+select.value+".mp3?v=1";audio.load();nature.disabled=select.value!=="30";update();status.textContent=select.value+"分の休息に切り替えたよ"}
+select.addEventListener("change",change);nature.addEventListener("change",change);
 async function play(){try{await audio.play();status.textContent="目を閉じて、今は休もう"}catch(e){status.textContent="音声を再生できなかったよ。通信やMP3の公開状況を確認してね"}}
 document.getElementById("start").addEventListener("click",()=>{audio.currentTime=0;play()});
 document.getElementById("pause").addEventListener("click",()=>{if(audio.paused)play();else{audio.pause();status.textContent="一時停止中"}});
