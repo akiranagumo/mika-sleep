@@ -1,0 +1,59 @@
+name: Build Sui 30-minute daytime nature immersion
+on:
+  push:
+    paths:
+      - '.github/workflows/build-sleepless-day-30.yml'
+      - 'scripts/build_sleepless_day_30.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sleepless-day-30
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install static FFmpeg
+        run: python -m pip install --disable-pip-version-check imageio-ffmpeg
+      - name: Download three public-domain nature field recordings
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request,urlopen
+          items={
+            "day-birds.ogg":"https://upload.wikimedia.org/wikipedia/commons/3/38/Birds_forest.ogg",
+            "day-creek.ogg":"https://upload.wikimedia.org/wikipedia/commons/9/9e/Forest_lawn_creek.ogg",
+            "day-rain.ogg":"https://upload.wikimedia.org/wikipedia/commons/3/3d/Rain.ogg"
+          }
+          for filename,url in items.items():
+              req=Request(url,headers={"User-Agent":"SLEEPLESS-Sui-Daytime/1.0 (educational audio mixing; GitHub Pages)"})
+              with urlopen(req,timeout=120) as r:Path(filename).write_bytes(r.read())
+              assert Path(filename).stat().st_size>50000
+              print(filename,Path(filename).stat().st_size,flush=True)
+          PY
+      - name: Master two balanced / rich-nature 30-minute Sui tracks
+        run: python scripts/build_sleepless_day_30.py
+      - name: Commit MP3 masters and source recordings
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sui30
+          cp sleepless-day-30-*.mp3 day-*.ogg /tmp/sui30/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sui30/* .
+            git add sleepless-day-30-*.mp3 day-*.ogg
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Publish 30-minute Sui rest with nature field recordings'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          exit 1
