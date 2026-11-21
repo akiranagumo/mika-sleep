@@ -29,8 +29,8 @@ audio{display:block;width:100%;margin-top:23px}
 <label for="nature">30分版の自然音</label><select id="nature"><option value="nature-rich" selected>豊かに — 鳥・小川・雨の音</option><option value="balanced">控えめに — 囁き優先</option></select><button id="start">▶ Suiと休息をはじめる</button>
 <button class="secondary" id="pause">Ⅱ 一時停止 / 再開</button>
 <audio id="audio" controls playsinline preload="metadata" src="./sleepless-day-30-nature-rich.mp3?v=1"></audio>
-<div id="time">00:00 / 30:00</div><div id="status">30分版：Suiの囁きと森の鳥・小川・雨の実録音</div>
-<p class="note">30分版は数字のカウントを使わず、Suiの既存の囁きと、森林の鳥・小川・雨の実録音を組み合わせた昼用の休息作品です。現在は新規の長編朗読ではなく、既存のSuiの言葉を自然音と交互に聴く構成です。10・15・20分版は夜用音源の短縮版です。起こすアラームは鳴りません。午後の診療に戻る時刻は、必要ならiPhone側で別途アラームを設定してください。画面ロック中の再生はiOSや設定により停止する場合があります。眠れなくても無理に続けなくて大丈夫。<a href="./v13.html">いつもの夜版</a>も開けます。</p>
+<div id="time">00:00 / 30:00</div><div id="status">30分版：Suiの囁きと森の鳥・小川・雨の環境音</div>
+<p class="note">30分版は数字のカウントを使わず、Suiの既存の囁きと、森林の鳥・小川・雨の環境音を組み合わせた昼用の休息作品です。現在は新規の長編朗読ではなく、既存のSuiの言葉を自然音と交互に聴く構成です。10・15・20分版は夜用音源の短縮版です。起こすアラームは鳴りません。午後の診療に戻る時刻は、必要ならiPhone側で別途アラームを設定してください。画面ロック中の再生はiOSや設定により停止する場合があります。眠れなくても無理に続けなくて大丈夫。<a href="./v13.html">いつもの夜版</a>も開けます。</p>
 </main><script>(()=>{"use strict";const audio=document.getElementById("audio"),select=document.getElementById("minutes"),nature=document.getElementById("nature"),status=document.getElementById("status"),time=document.getElementById("time");
 const fmt=t=>{t=Math.floor(Math.max(0,t||0));return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0")};
 function update(){time.textContent=fmt(audio.currentTime)+" / "+fmt((audio.duration&&Number.isFinite(audio.duration))?audio.duration:Number(select.value)*60)}
