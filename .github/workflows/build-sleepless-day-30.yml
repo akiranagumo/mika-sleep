@@ -26,16 +26,35 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from urllib.request import Request,urlopen
+          import subprocess,time
+          import imageio_ffmpeg
           items={
             "day-birds.ogg":"https://upload.wikimedia.org/wikipedia/commons/3/38/Birds_forest.ogg",
             "day-creek.ogg":"https://upload.wikimedia.org/wikipedia/commons/9/9e/Forest_lawn_creek.ogg",
             "day-rain.ogg":"https://upload.wikimedia.org/wikipedia/commons/3/3d/Rain.ogg"
           }
-          for filename,url in items.items():
-              req=Request(url,headers={"User-Agent":"SLEEPLESS-Sui-Daytime/1.0 (educational audio mixing; GitHub Pages)"})
-              with urlopen(req,timeout=120) as r:Path(filename).write_bytes(r.read())
-              assert Path(filename).stat().st_size>50000
-              print(filename,Path(filename).stat().st_size,flush=True)
+          ffmpeg=imageio_ffmpeg.get_ffmpeg_exe()
+          for name,url in items.items():
+              dest=Path(name)
+              for attempt in range(3):
+                  try:
+                      request=Request(url,headers={"User-Agent":"SLEEPLESS-Day-Audio/1.0 (audio app; admin contact github.com/akiranagumo)"})
+                      with urlopen(request,timeout=45) as resp:dest.write_bytes(resp.read())
+                      if dest.stat().st_size<50000:raise ValueError("Too short")
+                      print("Real-world recorded nature:",name,dest.stat().st_size,flush=True)
+                      break
+                  except Exception as e:
+                      print("Recording unavailable:",name,str(e),flush=True)
+                      if attempt<2:time.sleep(3*(attempt+1))
+              else:
+                  # Gentle synthesized nature bed fallback. Preserve the real
+                  # birds source when available. No sudden digital silence.
+                  print("FALLBACK synthetic nature:",name,flush=True)
+                  color="brown" if "creek" in name else "pink"
+                  subprocess.run([ffmpeg,"-nostdin","-y","-hide_banner","-loglevel","error",
+                    "-f","lavfi","-i",f"anoisesrc=color={color}:amplitude=0.35:sample_rate=24000",
+                    "-t","120","-c:a","libvorbis","-q:a","2",str(dest)],check=True)
+                  assert dest.stat().st_size>50000
           PY
       - name: Master two balanced / rich-nature 30-minute Sui tracks
         run: python scripts/build_sleepless_day_30.py
