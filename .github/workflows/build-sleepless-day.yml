@@ -1,0 +1,43 @@
+name: Build SLEEPLESS daytime short rest editions
+on:
+  push:
+    paths:
+      - '.github/workflows/build-sleepless-day.yml'
+      - 'scripts/build_sleepless_day.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sleepless-day-render
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install bundled FFmpeg
+        run: pip install --disable-pip-version-check imageio-ffmpeg
+      - name: Make three daytime Sui MP3 files
+        run: python scripts/build_sleepless_day.py
+      - name: Publish
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sleepless-day
+          cp sleepless-day-{10,15,20}.mp3 /tmp/sleepless-day/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for n in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/sleepless-day/*.mp3 .
+            git add sleepless-day-*.mp3
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Publish 10 15 20 minute Sui midday recovery MP3'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
